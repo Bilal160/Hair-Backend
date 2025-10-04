@@ -6,10 +6,14 @@
   "author": "",
   "type": "commonjs",
   "main": "dist/index.js",
-  "scripts": {
+ "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "auto": "npx nodemon server.js",
-    "start": "node dist/index.js"
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "start:prod": "npm run build && npm start"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",

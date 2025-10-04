@@ -47,6 +47,10 @@ const upload = multer({
   { name: "categoryPhoto", maxCount: 1 },
   { name: "dealPhoto", maxCount: 2 },
   { name: "profilePhoto", maxCount: 1 },
+  { name: "businessPhotos", maxCount: 4 },
+  { name: "businessNICPhoto", maxCount: 2 },
+  { name: "businessRegistrationDoc", maxCount: 1 },
+  { name: "businessFeaturedImage", maxCount: 1 }
 ]);
 
 // ✅ Custom error messages for each field
@@ -55,6 +59,11 @@ const maxCountErrors: Record<string, string> = {
   bannerPhoto: "You can only upload 1 banner photo",
   categoryPhoto: "You can only upload 1 category photo",
   dealPhoto: "You can only upload 2 deal photos",
+  profilePhoto: "You can only upload 1 profile photo",
+  businessPhotos: "You can only upload 4 business photos",
+  businessNICPhoto: "You can only upload 2 business NIC photos",
+  businessRegistrationDoc: "You can only upload 1 business registration document",
+  businessFeaturedImage: "You can only upload 1 business featured image"
 };
 
 export const uploadPhotoMiddleware = (
@@ -82,6 +91,10 @@ export const uploadPhotoMiddleware = (
         "categoryPhoto",
         "dealPhoto",
         "profilePhoto",
+        "businessPhotos",
+        "businessNICPhoto",
+        "businessRegistrationDoc",
+        "businessFeaturedImage",
       ];
 
       for (const field of fileFields) {

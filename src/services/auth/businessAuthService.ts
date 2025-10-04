@@ -357,6 +357,56 @@ export class BusinessAuthService {
   }
 
 
+static async createformattedData(data: any) {
+
+    console.log("Received data for formatting:", data);
+
+    console.log("Raw incoming data keys:", Object.keys(data));
+  try {
+    const cleanedData: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      cleanedData[key.trim()] = value;
+    }
+
+    console.log("Cleaned Data:", cleanedData);
+
+    // Prepare businessLocation object
+    const businessLocation = {
+      type: "Point",
+      coordinates: [
+        Number(cleanedData.longitude),
+        Number(cleanedData.latitude)
+      ],
+      state: cleanedData.state,
+      city: cleanedData.city,
+      postalCode: cleanedData.postalCode,
+      streetAddress: cleanedData.streetAddress,
+    };
+
+    // Group business info
+    const businessInfo = {
+      businessName: cleanedData.businessName,
+      businessDescription: cleanedData.businessDescription,
+      operatingHours: cleanedData.operatingHours,
+      phone: cleanedData.businessPhone,
+      businessLocation,
+    };
+
+    // Return formatted payload
+    return {
+      email: cleanedData.email,
+      name: cleanedData.name,
+      password: cleanedData.password,
+      confirmPassword: cleanedData.confirmPassword,
+      phone: cleanedData.phone,
+      businessInfo,
+    };
+  } catch (error) {
+    throw new Error("Failed to format data");
+  }
+}
+
+
 static async getExistingPhoto(userId: string) {
   try {
     const user = await User.findById(userId)

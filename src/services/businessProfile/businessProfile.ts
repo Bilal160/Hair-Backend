@@ -9,9 +9,9 @@ import { deleteLogoFile } from "../../middlewares/uploadPhotoMiddleware";
 import { generateToken } from "../../utils/helperUtils";
 
 export class BusinessProfileService {
-  static async createBusinessProfile(userId: string) {
+  static async createBusinessProfile(payload: Partial<IBusinessProfile>) {
     try {
-      const businessProfile = await BusinessProfile.create({ userId });
+      const businessProfile = await BusinessProfile.create(payload);
       return businessProfile;
     } catch (error: any) {
       throw new Error(`Failed to create business profile: ${error.message}`);
@@ -45,23 +45,7 @@ export class BusinessProfileService {
 
       let updateData = { ...updateFields };
 
-      if (!existingProfile?.slug || existingProfile.slug.length <= 1) {
-        // Create slugs only if they don't exist or are too short
-        const formattedName = payload.businessName
-          .trim()
-          .toLowerCase()
-          .replace(/\s+/g, "-");
-        const randomToken = await generateToken();
-        const newSlug = `${formattedName}${randomToken}`;
-        updateData = {
-          ...updateFields,
-          businessSlug:
-            process.env.FRONTEND_URL?.trim().replace(/\/+$/, "") + // Remove trailing slash
-            "/restaurant/" +
-            newSlug,
-          slug: newSlug,
-        };
-      }
+
 
       const businessProfile = await BusinessProfile.findOneAndUpdate(
         { userId },
@@ -408,44 +392,9 @@ export class BusinessProfileService {
     }
   }
 
-  static async getBusinssExistingLogo(userId: string) {
-    try {
-      const businessProfile = await BusinessProfile.findOne({ userId });
-      businessProfile?.bannerImageId;
-      if (businessProfile?.bannerImageId) {
-        const logoImage = await ImagesUpload.findById(
-          businessProfile?.bannerImageId
-        );
-        if (logoImage) {
-          await deleteFile(logoImage.fileName);
-          await logoImage.deleteOne();
-        }
-        return businessProfile?.bannerImageId;
-      }
-      return null;
-    } catch (error: any) {
-      throw new Error(`Failed to get business profile: ${error.message}`);
-    }
-  }
 
-  static async deleteBusinessImage(userId: string, type: "logo" | "banner") {
-    try {
-      const businessProfile = await BusinessProfile.findOne({ userId });
-      const imageId =
-        type === "logo"
-          ? businessProfile?.logoImageId
-          : businessProfile?.bannerImageId;
 
-      if (imageId) {
-        await deleteFile(imageId);
-        return true;
-      }
-      return false;
-    } catch (error: any) {
-      console.error(`Failed to delete business ${type} image:`, error.message);
-      return false;
-    }
-  }
+
 
   static async parseBusinessData(data: any) {
     var businessLocationData = data.businessLocation || {
@@ -593,25 +542,7 @@ export class BusinessProfileService {
     }
   }
 
-  static async updateDailyAndLunchSpecialTime(userId: string, payload: any) {
-    try {
-      const businessProfile = await BusinessProfile.findOne({ userId });
-      if (businessProfile) {
-        if (payload.lunchSpecialTime !== undefined) {
-          businessProfile.lunchSpecialTime = payload.lunchSpecialTime;
-        }
-        if (payload.dailySpecialTime !== undefined) {
-          businessProfile.dailySpecialTime = payload.dailySpecialTime;
-        }
 
-        await businessProfile.save();
-        return businessProfile;
-      }
-      return null;
-    } catch (error: any) {
-      throw new Error(`Failed to update business profile: ${error.message}`);
-    }
-  }
 
 
   static async updateSubscriptionType(
@@ -646,62 +577,62 @@ export class BusinessProfileService {
     }
   }
 
-static async saveInstagramToken(
-  userId: string,
-  instagramToken: string,
-  tokenExpiry: Date
-) {
-  try {
-    const businessProfile = await BusinessProfile.findOneAndUpdate(
-      { userId },
-      {
-        $set: {
-          "instagramInfo.instagramToken": instagramToken,
-          "instagramInfo.tokenExpiry": tokenExpiry,
+  static async saveInstagramToken(
+    userId: string,
+    instagramToken: string,
+    tokenExpiry: Date
+  ) {
+    try {
+      const businessProfile = await BusinessProfile.findOneAndUpdate(
+        { userId },
+        {
+          $set: {
+            "instagramInfo.instagramToken": instagramToken,
+            "instagramInfo.tokenExpiry": tokenExpiry,
+          },
         },
-      },
-      { new: true }
-    )
-      .select("_id userId instagramInfo")
-      .lean();
+        { new: true }
+      )
+        .select("_id userId instagramInfo")
+        .lean();
 
-    return businessProfile;
-  } catch (error: any) {
-    throw new Error(`Failed to save instagram token: ${error.message}`);
-  }
-}
-
-
-static async checktokenvalidity(id: string) {
-  try {
-    const businessProfile = await BusinessProfile.findById(id)
-      .select("instagramInfo")
-      .lean();
-
-    const tokenExpiry: Date | undefined = (businessProfile as any)?.instagramInfo?.tokenExpiry;
-    if (!tokenExpiry) {
-      return { isValid: false, daysUntilExpiry: 0 };
+      return businessProfile;
+    } catch (error: any) {
+      throw new Error(`Failed to save instagram token: ${error.message}`);
     }
-
-    const now = new Date();
-    const msDiff = new Date(tokenExpiry).getTime() - now.getTime();
-    const daysUntilExpiry = Math.max(0, Math.ceil(msDiff / (1000 * 60 * 60 * 24)));
-    return { isValid: msDiff > 0, daysUntilExpiry };
-  } catch (error: any) {
-    throw new Error(`Failed to check token validity: ${error.message}`);
   }
-}
 
-static async getUserByBusinessId(id: string) {
-  try {
-    const businessProfile = await BusinessProfile.findById(id)
-      .select('userId instagramInfo' )
-      .lean();
-    return businessProfile
-  } catch (error: any) {
-    throw new Error(`Failed to get business profile: ${error.message}`);
+
+  static async checktokenvalidity(id: string) {
+    try {
+      const businessProfile = await BusinessProfile.findById(id)
+        .select("instagramInfo")
+        .lean();
+
+      const tokenExpiry: Date | undefined = (businessProfile as any)?.instagramInfo?.tokenExpiry;
+      if (!tokenExpiry) {
+        return { isValid: false, daysUntilExpiry: 0 };
+      }
+
+      const now = new Date();
+      const msDiff = new Date(tokenExpiry).getTime() - now.getTime();
+      const daysUntilExpiry = Math.max(0, Math.ceil(msDiff / (1000 * 60 * 60 * 24)));
+      return { isValid: msDiff > 0, daysUntilExpiry };
+    } catch (error: any) {
+      throw new Error(`Failed to check token validity: ${error.message}`);
+    }
   }
-}
+
+  static async getUserByBusinessId(id: string) {
+    try {
+      const businessProfile = await BusinessProfile.findById(id)
+        .select('userId instagramInfo')
+        .lean();
+      return businessProfile
+    } catch (error: any) {
+      throw new Error(`Failed to get business profile: ${error.message}`);
+    }
+  }
 
 
 }

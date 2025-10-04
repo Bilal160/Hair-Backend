@@ -11,6 +11,7 @@ export interface IUser extends Document {
 
   isVerified?: boolean;
 
+  stripeCustomerId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

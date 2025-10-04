@@ -2,6 +2,7 @@ import * as express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import userAuth from "./userAuth";
+import businessAuth from "./businessAuth";
 
 
 // Import route modules
@@ -24,8 +25,9 @@ export const routes = () => {
     res.send("Welcome to Pronostic Backend API");
   });
 
-
+ router.use("/auth/business", businessAuth);
   router.use("/auth", userAuth);
+
 
 
   return router;

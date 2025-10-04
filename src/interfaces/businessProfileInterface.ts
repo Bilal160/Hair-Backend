@@ -16,24 +16,22 @@ export interface IBusinessProfile extends Document {
     postalCode: string;
     streetAddress: string;
   };
-  telegramLink: string;
   phone: string;
-  instagramId: string;
+
   operatingHours: string;
-  bannerImageId?: string;
+
   subscriptionType: string;
-  websiteLink: string;
-  googleBusinessLink: string;
   userId: mongoose.Types.ObjectId;
   averageRating?: number;
   totalReviews?: number;
   reviews?: IReview[];
-  businessSlug?: string;
-  slug?: string;
-  dealIds: mongoose.Types.ObjectId[];
-  lunchSpecialTime?: string;
-  dailySpecialTime?: string;
-  logoImageId?: string;
-  instagramToken?: string;
-  instagramInfo?: IInstagramInfo;
+  isApproved?: boolean;
+  featuredImageId?: string;
+  businessPhotosIds?: string[];
+  businessNICPhotoId?: string[];
+  businessRegistrationDocId?: string;
+
+
+
+
 }

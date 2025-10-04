@@ -6,7 +6,7 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
   {
     businessName: {
       type: String,
-      required: false,
+      required: true,
       default: "",
     },
     businessDescription: {
@@ -19,12 +19,13 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
         type: String,
         enum: ["Point"],
         default: "Point",
+        required: true,
       },
       coordinates: {
         type: [Number], // [longitude, latitude]
+        required: true,
         default: [0, 0],
       },
-
       state: {
         type: String,
         default: "canada",
@@ -33,30 +34,22 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
       city: {
         type: String,
         default: "",
+        required: true,
       },
       postalCode: {
         type: String,
         default: "",
+        required: true,
       },
       streetAddress: {
         type: String,
         default: "",
+        required: true,
       },
-    },
-    telegramLink: {
-      type: String,
-      required: false,
-      default: "",
     },
     phone: {
       type: String,
-      required: false,
-      default: "",
-    },
-
-    instagramId: {
-      type: String,
-      required: false,
+      required: true,
       default: "",
     },
     operatingHours: {
@@ -64,17 +57,20 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
       required: false,
       default: "",
     },
-
+    subscriptionType: {
+      type: String,
+      required: false,
+      default: "free",
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      default: null,
     },
     averageRating: {
-      type: Array,
+      type: Number,
       required: false,
-      default: [],
+      default: 0,
     },
     totalReviews: {
       type: Number,
@@ -82,81 +78,39 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
       default: 0,
     },
     reviews: {
-      type: Array,
+      type: [mongoose.Schema.Types.Mixed], // Use Mixed for IReview[]
       required: false,
       default: [],
     },
-
-    businessSlug: {
-      type: String,
+    isApproved: {
+      type: Boolean,
       required: false,
-      default: "",
+      default: false,
     },
-    slug: {
-      type: String,
+    featuredImageId: {
+      type: mongoose.Types.ObjectId,
       required: false,
-      default: "",
+      ref:"ImagesUpload",
+      default: null,
     },
-    dealIds: {
-      type: Array,
+    businessPhotosIds: {
+      type: [mongoose.Types.ObjectId],
+      ref:"ImagesUpload",
       required: false,
-      ref: "Deal",
       default: [],
     },
-
-    bannerImageId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "imagesUpload",
+    businessNICPhotoId: {
+      type: [mongoose.Types.ObjectId],
       required: false,
+      ref:"ImagesUpload",
+      default: [],
+    },
+    businessRegistrationDocId: {
+      type: mongoose.Types.ObjectId,
+      required: false,
+      ref:"ImagesUpload",
       default: null,
     },
-
-    subscriptionType: {
-      type: String,
-      required: false,
-      default: "free",
-    },
-    websiteLink: {
-      type: String,
-      required: false,
-      default: "",
-    },
-    googleBusinessLink: {
-      type: String,
-      required: false,
-      default: "",
-    },
-    lunchSpecialTime: {
-      type: String,
-      required: false,
-      default: "",
-    },
-    dailySpecialTime: {
-      type: String,
-      required: false,
-      default: "",
-    },
-    logoImageId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "imagesUpload",
-      required: false,
-      default: null,
-    },
-    instagramToken: {
-      type: String,
-      required: false,
-      default: "",
-    },
-  instagramInfo: {
-  instagramToken: {
-    type: String,
-    default: "",
-  },
-  tokenExpiry: {
-    type: Date, // Better than null/Number if you're storing expiry timestamp
-    default: null,
-  },
-},
   },
   {
     timestamps: true,
@@ -165,26 +119,7 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
   }
 );
 
-BusinessProfileSchema.virtual("user", {
-  ref: "User",
-  localField: "userId",
-  foreignField: "_id",
-  justOne: true,
-});
 
-BusinessProfileSchema.virtual("bannerImage", {
-  ref: "imagesUpload",
-  localField: "bannerImageId",
-  foreignField: "_id",
-  justOne: true,
-});
-
-BusinessProfileSchema.virtual("logoImage", {
-  ref: "imagesUpload",
-  localField: "logoImageId",
-  foreignField: "_id",
-  justOne: true,
-});
 
 // Create geospatial index for location-based queries
 BusinessProfileSchema.index({ businessLocation: "2dsphere" });

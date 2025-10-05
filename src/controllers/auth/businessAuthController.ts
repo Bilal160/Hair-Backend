@@ -24,6 +24,7 @@ import { Types } from "mongoose";
 import { ImagesService } from "../../services/imagesService";
 import { signUpBusinessUser } from "../../validations/signUpBusinessValidation";
 import { createStripeCustomer } from "../../utils/stripeInfoUtils";
+import { PaymentService } from "../../services/payment/paymentService";
 
 export class BusinessAuthController {
     constructor(private readonly userService: IUser) { }
@@ -130,39 +131,60 @@ export class BusinessAuthController {
             return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
         }
     }
-    static async LoginBusinessUser(req: Request, res: Response) {
-        const { email, password } = req.body;
+     static async LoginBusinessUser(req: Request, res: Response) {
+    const { email, password } = req.body;
 
-        try {
-            const user = (await BusinessAuthService.userByEmailWithPassword(email)) as IUser;
+    try {
+      const user = (await BusinessAuthService.userByEmailWithPassword(
+        email
+      )) as IUser;
 
-            console.log(user, "user");
+      console.log(user, "user");
 
-            if (!user) {
-                return sendErrorResponse(res, ["User not found"], 404);
-            }
+      if (!user) {
+        return sendErrorResponse(res, ["User not found"], 404);
+      }
 
+      if (user.roleType !== 1) {
+        return sendErrorResponse(
+          res,
+          [
+            "You are not a business user kindly register yourself as a business user",
+          ],
+          400
+        );
+      }
 
+      const loginResult = await BusinessAuthService.loginUser(user, password);
 
-            const loginResult = await BusinessAuthService.loginUser(user, password);
+      const businessProfile = await BusinessProfileService.getBusinessProfile(
+        (loginResult?.user?._id as any).toString()
+      );
 
+      const subscriptionInfo = await PaymentService.getSubscriptionByUserId(
+        (loginResult?.user?._id as any).toString()
+      );
 
+      // Expecting loginResult = { accessToken, refreshToken, user }
+      return sendSuccessResponse(
+        res,
+        ["Business user logged in successfully"],
+        {
+          data: loginResult,
+          businessProfile: businessProfile,
+          subscription: subscriptionInfo,
+        },
+        200
+      );
+    } catch (error: any) {
+      if (error?.message == "Invalid credentials") {
+        return sendErrorResponse(res, [`Invalid credentials`], 400);
+      }
 
-
-            return sendSuccessResponse(
-                res,
-                ["User logged in successfully"],
-                { data: loginResult },
-                200
-            );
-        } catch (error: any) {
-            if (error?.message == "Invalid credentials") {
-                return sendErrorResponse(res, [`Invalid credentials`], 400);
-            }
-
-            return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
-        }
+      console.log(error, "error in login business user");
+      return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
     }
+  }
     static async UpdateBusinessUser(req: Request, res: Response) {
         const userId = req.userId;
 
@@ -243,6 +265,7 @@ export class BusinessAuthController {
         }
     }
 
+   
     static async ChangePasswordForBusiness(req: Request, res: Response) {
         const userId = req.userId;
         const { password, newPassword, confirmPassword } = req.body;
@@ -327,40 +350,49 @@ export class BusinessAuthController {
     }
 
     static async forgotPasswordForBusiness(req: Request, res: Response) {
-        const { email } = req.body;
-        const result = await forgotPasswordSchema.safeParse(req.body);
-        if (!result.success) {
-            const errorMessage = handleValidationErrors(result.error);
-            return sendErrorResponse(res, [`Validation Error: ${errorMessage}`], 400);
-        }
-        console.log(email, "email");
-        try {
-            let userInfo = await BusinessAuthService.userByEmail(email);
-            if (!userInfo) {
-                return sendErrorResponse(res, ["User not found"], 404);
-            }
-
-            console.log(userInfo, "userInfo");
-
-            const verificationToken = await generateToken().toString();
-            await sendMail(2, email, verificationToken || "", `${userInfo.name}`);
-            const expireAt = new Date(Date.now() + 30 * 60000);
-
-            await BusinessAuthService.saveToken(email, verificationToken, expireAt);
-            return sendSuccessResponse(
-                res,
-                ["Password reset email sent successfully"],
-                {},
-                200
-            );
-        } catch (error: any) {
-            if (error?.message == "User not found") {
-                return sendErrorResponse(res, ["User not found"], 404);
-            }
-
-            return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
-        }
+    const { email } = req.body;
+    const result = await forgotPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      const errorMessage = handleValidationErrors(result.error);
+      return sendErrorResponse(res, [`Validation Error: ${errorMessage}`], 400);
     }
+    console.log(email, "email");
+    try {
+      let userInfo = await BusinessAuthService.userByEmail(email);
+      if (!userInfo) {
+        return sendErrorResponse(res, ["User not found"], 404);
+      }
+
+      console.log(userInfo, "userInfo");
+
+      if (userInfo.roleType !== 1) {
+        return sendErrorResponse(
+          res,
+          [
+            "You are not a business user kindly register yourself as a business user",
+          ],
+          400
+        );
+      }
+      const verificationToken = await generateToken().toString();
+    //   await sendMail(2, email, verificationToken || "", `${userInfo.name} `);
+      const expireAt = new Date(Date.now() + 30 * 60000);
+
+      await BusinessAuthService.saveToken(email, verificationToken, expireAt);
+      return sendSuccessResponse(
+        res,
+        ["Password reset email sent successfully"],
+        {},
+        200
+      );
+    } catch (error: any) {
+      if (error?.message == "User not found") {
+        return sendErrorResponse(res, ["User not found"], 404);
+      }
+
+      return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
+    }
+  }
 
     static async sendVerificationEmail(req: Request, res: Response) {
         const { email } = req.body;

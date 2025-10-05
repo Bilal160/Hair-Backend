@@ -29,6 +29,7 @@ router.put(
 );
 router.put(
   "/update",
+  uploadPhotoMiddleware,
   userAuthMiddleware,
   asyncHandler(BusinessAuthController.UpdateBusinessUser)
 );
@@ -36,7 +37,7 @@ router.post(
   "/forgotPassword",
   asyncHandler(BusinessAuthController.forgotPasswordForBusiness)
 );
-router.post(
+router.put(
   "/resetPassword",
   asyncHandler(BusinessAuthController.resetPasswordForBusiness)
 );

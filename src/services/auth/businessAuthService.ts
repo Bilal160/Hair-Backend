@@ -328,7 +328,7 @@ export class BusinessAuthService {
 
 
 
-  static async formattedData(data: any) {
+ static async formattedData(data: any) {
     try {
       console.log("Raw incoming data keys:", Object.keys(data));
 

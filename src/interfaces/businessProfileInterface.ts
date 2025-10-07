@@ -9,7 +9,7 @@ export interface IBusinessProfile extends Document {
   businessName: string;
   businessDescription: string;
   businessLocation: {
-    type: "Point";
+    type: "Point" | string;
     coordinates: [number, number]; // [longitude, latitude]
     state?: string;
     city: string;
@@ -28,7 +28,7 @@ export interface IBusinessProfile extends Document {
   isApproved?: boolean;
   featuredImageId?: string;
   businessPhotosIds?: string[];
-  businessNICPhotoId?: string[];
+  businessNICPhotoIds?: string[];
   businessRegistrationDocId?: string;
 
 

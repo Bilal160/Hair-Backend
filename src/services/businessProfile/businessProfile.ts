@@ -18,68 +18,62 @@ export class BusinessProfileService {
     }
   }
 
-  static async updateBusinessProfile(
-    userId: string,
-    payload: IBusinessProfile
-  ) {
+  static async updateBusinessProfile(userId: string, payload: any) {
     try {
-      const { _id, __v, createdAt, updatedAt, ...updateFields } =
-        payload as any;
-
-      // Normalize GeoJSON structure
-      if (
-        updateFields.businessLocation &&
-        updateFields.businessLocation.coordinates
-      ) {
-        updateFields.businessLocation = {
-          type: "Point",
-          coordinates: updateFields.businessLocation.coordinates,
-          city: updateFields.businessLocation.city || "",
-          postalCode: updateFields.businessLocation.postalCode || "",
-          streetAddress: updateFields.businessLocation.streetAddress || "",
-          state: updateFields.businessLocation.state || "",
-        };
+      const existingProfile = await BusinessProfile.findOne({ userId });
+      if (!existingProfile) {
+        throw new Error("Business profile not found");
       }
 
-      const existingProfile = await BusinessProfile.findOne({ userId });
-
-      let updateData = { ...updateFields };
-
-
-
-      const businessProfile = await BusinessProfile.findOneAndUpdate(
+      const updatedProfile = await BusinessProfile.findOneAndUpdate(
         { userId },
-        updateData,
+        payload,
         { new: true }
       ).select(
         "-__v -createdAt -updatedAt -businessLocation.type -reviews -rating -averageRating -totalReviews"
       );
 
-      return businessProfile;
+      return updatedProfile;
     } catch (error: any) {
       throw new Error(`Failed to update business profile: ${error.message}`);
     }
   }
+
+
+
 
   static async getBusinessProfile(userId: string) {
     console.log(userId, "userId");
     try {
       const businessProfile = await BusinessProfile.findOne({ userId })
         .select("-__v -createdAt -updatedAt ")
-        .populate({
-          path: "user",
-          select: "firstName lastName email ", // Only select these fields
-        })
-        .populate({
-          path: "bannerImage",
-          select:
-            "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
-        })
-        .populate({
-          path: "logoImage",
-          select:
-            "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
-        });
+
+        .populate([
+          {
+            path: "user",
+            select: "firstName lastName email ", // Only select these fields
+          },
+          {
+            path: "businessPhotos",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          },
+          {
+            path: "featuredImage",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          },
+          {
+            path: "businessNICPhoto",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          },
+          {
+            path: "businessRegistrationDoc",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          }
+        ])
 
       const reviews = await ReviewsService.getReviews(
         businessProfile?._id as string
@@ -105,20 +99,32 @@ export class BusinessProfileService {
     try {
       const businessProfile = await BusinessProfile.findOne({ userId })
         .select("-__v -createdAt -updatedAt  ")
-        .populate({
-          path: "user",
-          select: "firstName lastName email ", // Only select these fields
-        })
-        .populate({
-          path: "bannerImage",
-          select:
-            "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
-        })
-        .populate({
-          path: "logoImage",
-          select:
-            "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
-        });
+        .populate([
+          {
+            path: "user",
+            select: "firstName lastName email ", // Only select these fields
+          },
+          {
+            path: "businessPhotos",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          },
+          {
+            path: "featuredImage",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          },
+          {
+            path: "businessNICPhoto",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          },
+          {
+            path: "businessRegistrationDoc",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          }
+        ])
 
       const reviews = await ReviewsService.getReviews(
         businessProfile?._id as string
@@ -633,6 +639,91 @@ export class BusinessProfileService {
       throw new Error(`Failed to get business profile: ${error.message}`);
     }
   }
+
+
+
+
+  static async updateBusinessData(data: any) {
+    console.log(data, "data in service");
+
+    try {
+      // 🧹 Clean up keys (trim whitespace)
+      const cleanedData: Record<string, any> = {};
+      for (const [key, value] of Object.entries(data)) {
+        cleanedData[key.trim()] = value;
+      }
+
+      console.log("Cleaned Data:", cleanedData);
+
+      // 🧠 Helper: safely parse ID arrays (handles invalid JSON too)
+      const parseIdArray = (value: any): string[] => {
+        if (!value) return [];
+        try {
+          if (typeof value === "string") {
+            // Try valid JSON parsing first
+            if (value.startsWith("[") && value.endsWith("]")) {
+              try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed : [];
+              } catch {
+                // 🧹 Fallback: extract ObjectIds manually using regex
+                const matches =
+                  value.match(/"([0-9a-f]{24})"/g) ||
+                  value.match(/[0-9a-f]{24}/g);
+                return matches ? matches.map((m) => m.replace(/"/g, "")) : [];
+              }
+            }
+            // Single ID case
+            return [value];
+          }
+
+          // Already an array
+          if (Array.isArray(value)) return value;
+
+          return [];
+        } catch (err) {
+          console.warn("⚠️ Failed to parse ID array:", value);
+          return [];
+        }
+      };
+
+      // 🗺️ Prepare businessLocation object
+      const businessLocation = {
+        type: "Point",
+        coordinates: [
+          Number(cleanedData.longitude),
+          Number(cleanedData.latitude),
+        ],
+        state: cleanedData.state,
+        city: cleanedData.city,
+        postalCode: cleanedData.postalCode,
+        streetAddress: cleanedData.streetAddress,
+      };
+
+      // 🧩 Group all business info
+      const businessInfo = {
+        businessName: cleanedData.businessName,
+        businessDescription: cleanedData.businessDescription,
+        operatingHours: cleanedData.operatingHours,
+        phone: cleanedData.businessPhone,
+        businessLocation,
+
+        // 🔄 Parse ID arrays safely
+        removeBusinessPhotosIds: parseIdArray(cleanedData.removeBusinessPhotosIds),
+        removeBusinessNICPhotoIds: parseIdArray(cleanedData.removeBusinessNICPhotoIds),
+        removeBusinessRegistrationDocId: parseIdArray(cleanedData.removeBusinessRegistrationDocId),
+        removeFeaturedImageId: parseIdArray(cleanedData.removeFeaturedImageId),
+      };
+
+      // ✅ Return formatted payload
+      return { businessInfo };
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to format data");
+    }
+  }
+
+
 
 
 }

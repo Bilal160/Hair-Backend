@@ -32,4 +32,17 @@ export class ImagesService {
   }
 }
 
+static async handleDeletions(ids: string[] | string | undefined) {
+  if (!ids) return;
+  const idArray = Array.isArray(ids) ? ids : [ids];
+  for (const id of idArray) {
+    const photo = await ImagesUpload.findById(id);
+    if (photo) {
+      await ImagesUpload.findByIdAndDelete(id);
+      await deleteFile(photo.key);
+    }
+  }
+}
+
+
 }

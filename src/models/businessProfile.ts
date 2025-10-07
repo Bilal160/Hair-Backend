@@ -99,7 +99,7 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
       required: false,
       default: [],
     },
-    businessNICPhotoId: {
+    businessNICPhotoIds: {
       type: [mongoose.Types.ObjectId],
       required: false,
       ref:"ImagesUpload",
@@ -118,6 +118,43 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+
+BusinessProfileSchema.virtual("user", {
+  ref: "User",
+  localField: "userId",
+  foreignField: "_id",
+  justOne: true,
+});
+
+
+BusinessProfileSchema.virtual("featuredImage", {
+  ref: "imagesUploads",
+  localField: "featuredImageId",
+  foreignField: "_id",
+  justOne: true,
+});
+
+
+
+BusinessProfileSchema.virtual("businessPhotos", {
+  ref: "imagesUploads",
+  localField: "businessPhotosIds",
+  foreignField: "_id",
+  justOne: false,
+});
+BusinessProfileSchema.virtual("businessNICPhoto", {
+  ref: "imagesUploads",
+  localField: "businessNICPhotoIds",
+  foreignField: "_id",
+  justOne: false,
+});
+
+BusinessProfileSchema.virtual("businessRegistrationDoc", {
+  ref: "imagesUploads",
+  localField: "businessRegistrationDocId",
+  foreignField: "_id",
+  justOne: true,
+});
 
 
 

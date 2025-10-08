@@ -4,6 +4,7 @@ import cors from "cors";
 import userAuth from "./userAuth";
 import businessAuth from "./businessAuth";
 import businessProfile from "./businessProfile";
+import paymentRoutes from "./paymentRoutes"
 
 
 // Import route modules
@@ -29,6 +30,7 @@ export const routes = () => {
   router.use("/auth/business", businessAuth);
   router.use("/auth", userAuth);
   router.use("/business", businessProfile);
+  router.use("/business/payment", paymentRoutes)
 
 
 

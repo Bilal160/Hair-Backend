@@ -1,12 +1,12 @@
 export const timeLimit = {
   // forTrial: 7 * 24 * 60 * 60 * 1000,
   // forSubscription: 365 * 24 * 60 * 60 * 1000,
-  forTrial: 30 * 60 * 1000, // 30 minutes
+  forTrial: 30 * 24 * 60 * 60 * 1000, // 30 minutes
   forSubscription: 30 * 24 * 60 * 60 * 1000, // 3 days
 };
 
 export const trialSubscriptionPlan = {
-  subscriptionStatus: "trial",
+  subscriptionStatus: "subscribed",
   subscriptionStartDate: new Date(Date.now()),
   subscriptionExpiryDate: new Date(Date.now() + timeLimit.forTrial),
   previousSubscriptionStatus: "",

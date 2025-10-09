@@ -12,8 +12,6 @@ dotenv.config();
 const storage = multer.memoryStorage();
 const maxSize = 1 * 1024 * 1024 * 1024; // 1GB
 
-
-
 const fileFilter = (
   req: Request,
   file: Express.Multer.File,
@@ -35,8 +33,6 @@ const fileFilter = (
   }
 };
 
-
-
 const upload = multer({
   storage,
   limits: { fileSize: maxSize },
@@ -50,7 +46,8 @@ const upload = multer({
   { name: "businessPhotos", maxCount: 4 },
   { name: "businessNICPhoto", maxCount: 2 },
   { name: "businessRegistrationDoc", maxCount: 1 },
-  { name: "businessFeaturedImage", maxCount: 1 }
+  { name: "businessFeaturedImage", maxCount: 1 },
+  { name: "servicePhoto", maxCount: 1 },
 ]);
 
 // ✅ Custom error messages for each field
@@ -62,8 +59,10 @@ const maxCountErrors: Record<string, string> = {
   profilePhoto: "You can only upload 1 profile photo",
   businessPhotos: "You can only upload 4 business photos",
   businessNICPhoto: "You can only upload 2 business NIC photos",
-  businessRegistrationDoc: "You can only upload 1 business registration document",
-  businessFeaturedImage: "You can only upload 1 business featured image"
+  businessRegistrationDoc:
+    "You can only upload 1 business registration document",
+  businessFeaturedImage: "You can only upload 1 business featured image",
+  servicePhoto: "You can only upload 1 Service Image",
 };
 
 export const uploadPhotoMiddleware = (
@@ -95,6 +94,7 @@ export const uploadPhotoMiddleware = (
         "businessNICPhoto",
         "businessRegistrationDoc",
         "businessFeaturedImage",
+        "servicePhoto",
       ];
 
       for (const field of fileFields) {

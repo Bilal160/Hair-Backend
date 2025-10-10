@@ -91,6 +91,8 @@ export class BusinessServiceController {
     const userId = req.userId;
     const businessId =
       await BusinessProfileService.getIdofBusinessProfileUserId(userId);
+
+    console.log("list call ");
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const search = (req.query.search as string) || "";
@@ -113,26 +115,6 @@ export class BusinessServiceController {
       return sendErrorResponse(res, [error.message], 500);
     }
   }
-
-  //   static async updateService(req: Request, res: Response) {
-  //     const result = updateServiceSchema.safeParse(req.body);
-  //     if (!result.success) {
-  //       const errorMessage = handleValidationErrors(result.error);
-  //       return sendErrorResponse(res, [errorMessage], 400);
-  //     }
-  //     try {
-  //       const { id } = req.params;
-  //       const service = await BusinessService.updateService(id, result.data);
-  //       if (!service) {
-  //         return sendErrorResponse(res, ["Service not found"], 404);
-  //       }
-  //       return sendSuccessResponse(res, ["Service updated successfully"], {
-  //         service,
-  //       });
-  //     } catch (error: any) {
-  //       return sendErrorResponse(res, [error.message], 500);
-  //     }
-  //   }
 
   static async updateService(req: Request, res: Response) {
     const userId = req.userId;
@@ -158,7 +140,7 @@ export class BusinessServiceController {
       let updatePayload: any = { ...result.data };
 
       // Remove photo if requested
-      if (req.body.removePhoto === "true" || req.body.removePhoto === true) {
+      if (result.data.removePhoto === "true") {
         const existingService = (await BusinessService.getServiceById(
           id
         )) as any;
@@ -178,6 +160,7 @@ export class BusinessServiceController {
 
       // New photo upload (replace old if present)
       let servicePhoto = (req.files as any)?.servicePhoto;
+      console.log(servicePhoto, "Comming Photo");
       if (servicePhoto && servicePhoto.length > 0) {
         const existingService = (await BusinessService.getServiceById(
           id
@@ -197,6 +180,8 @@ export class BusinessServiceController {
           Array.isArray(servicePhoto) ? servicePhoto : [servicePhoto],
           "servicePhoto"
         );
+
+        console.log(uploadedIds, "hgcg");
         if (uploadedIds && uploadedIds.length > 0) {
           updatePayload.servicePhotoId = new Types.ObjectId(uploadedIds[0]);
         }

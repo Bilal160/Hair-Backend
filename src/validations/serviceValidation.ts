@@ -9,6 +9,7 @@ export const createServiceSchema = z.object({
   description: z
     .string({ required_error: "Description is required" })
     .min(5, { message: "Service description must be at least 5 characters." }),
+  price: z.string({ required_error: "Price Required For Service " }),
   servicePhotoId: z.string().optional().nullable(),
 });
 
@@ -23,5 +24,7 @@ export const updateServiceSchema = z.object({
     .string({ required_error: "Description is required" })
     .min(5, { message: "Service description must be at least 5 characters." })
     .optional(),
+  price: z.string({ required_error: "Price Required For Service " }),
   servicePhotoId: z.string().optional().nullable(),
+  removePhoto: z.string().optional(),
 });

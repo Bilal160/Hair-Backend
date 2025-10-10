@@ -113,7 +113,7 @@ export class BusinessService {
 
       // 🔹 Only allow specific fields
       const payload: Record<string, any> = {};
-      const fields = ["name", "description", "removePhoto"];
+      const fields = ["name", "description", "removePhoto", "price"];
 
       for (const key of fields) {
         const value = cleanedData[key];

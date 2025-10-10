@@ -12,6 +12,12 @@ router.post(
   uploadPhotoMiddleware,
   asyncHandler(BusinessServiceController.createService)
 );
+
+router.get(
+  "/list",
+  userAuthMiddleware,
+  asyncHandler(BusinessServiceController.getAllServices)
+);
 router.get(
   "/:id",
   userAuthMiddleware,
@@ -23,11 +29,7 @@ router.put(
   uploadPhotoMiddleware,
   asyncHandler(BusinessServiceController.updateService)
 );
-router.get(
-  "/list",
-  userAuthMiddleware,
-  asyncHandler(BusinessServiceController.getAllServices)
-);
+
 router.delete(
   "/:id",
   userAuthMiddleware,

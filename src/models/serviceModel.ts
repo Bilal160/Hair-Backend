@@ -19,6 +19,10 @@ export const ServiceSchema: Schema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    price: {
+      type: String,
+      required: true,
+    },
     description: {
       type: String,
       required: true,
@@ -27,6 +31,12 @@ export const ServiceSchema: Schema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "ImagesUpload",
       default: null,
+    },
+
+    isActive: {
+      type: Boolean,
+      required: false,
+      default: true,
     },
   },
   {

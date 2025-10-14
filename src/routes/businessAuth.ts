@@ -41,4 +41,9 @@ router.put(
   "/resetPassword",
   asyncHandler(BusinessAuthController.resetPasswordForBusiness)
 );
+router.delete(
+  "/logout",
+  userAuthMiddleware,
+  asyncHandler(BusinessAuthController.logoutUser)
+);
 export = router;

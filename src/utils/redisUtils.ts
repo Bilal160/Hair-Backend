@@ -1,4 +1,4 @@
-import { Redis, RedisKey } from "ioredis";
+import Redis, {  RedisKey } from "ioredis";
 
 const redisClient = new Redis();
 

@@ -9,7 +9,7 @@ import { PasswordReset } from "../../models/passwordReset";
 import { EmailVerification } from "../../models/emailVerificationsTokens";
 
 export class AuthService {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   static async registerUser(user: IUser) {
     try {
@@ -20,11 +20,10 @@ export class AuthService {
       });
 
       const accessToken = await generateAccessToken(
-        (newUser._id as any).toString(),
+        (newUser._id as any).toString()
       );
       const refreshToken = await generateRefreshToken(
-        (newUser._id as any).toString(),
-
+        (newUser._id as any).toString()
       );
 
       const {
@@ -32,7 +31,6 @@ export class AuthService {
         createdAt,
         updatedAt,
         __v,
-
 
         ...userWithoutPassword
       } = newUser.toObject();
@@ -57,13 +55,9 @@ export class AuthService {
       throw new Error("Invalid credentials");
     }
 
-    const accessToken = await generateAccessToken(
-      (user._id as any).toString(),
-
-    );
+    const accessToken = await generateAccessToken((user._id as any).toString());
     const refreshToken = await generateRefreshToken(
-      (user._id as any).toString(),
-
+      (user._id as any).toString()
     );
 
     const {
@@ -87,10 +81,11 @@ export class AuthService {
 
     const updatedUser = (await User.findByIdAndUpdate(userId, updates, {
       new: true,
-    }).select(
-      "-password -createdAt -updatedAt -__v -id -stripeCustomerId "
-    )) as IUser;
+    })
+      .select("-password -createdAt -updatedAt -__v -id -stripeCustomerId ")
+      .populate("profilePhoto", "url key")) as IUser;
 
+    console.log(updatedUser, "Comming Updated User");
     return updatedUser;
   }
 
@@ -170,8 +165,8 @@ export class AuthService {
   static async userByEmailWithPassword(email: string) {
     try {
       const user = await User.findOne({ email }).populate({
-        "path": "profilePhoto",
-        "select": "url key",
+        path: "profilePhoto",
+        select: "url key",
       });
       if (!user) {
         throw new Error("User not found");
@@ -326,8 +321,6 @@ export class AuthService {
     }
   }
 
-
-
   static async formattedData(data: any) {
     try {
       console.log("Raw incoming data keys:", Object.keys(data));
@@ -356,26 +349,18 @@ export class AuthService {
     }
   }
 
-
-static async getExistingPhoto(userId: string) {
-  try {
-    const user = await User.findById(userId)
-    .select("profilePhotoId")
-    .populate({
-      "path": "profilePhoto",
-      "select": "url key _id",
-    });
-    // Return the profilePhoto field (could be null if not set)
-    return user;
-  } catch (error) {
-    throw new Error("Failed to get existing photo");
+  static async getExistingPhoto(userId: string) {
+    try {
+      const user = await User.findById(userId)
+        .select("profilePhotoId")
+        .populate({
+          path: "profilePhoto",
+          select: "url key _id",
+        });
+      // Return the profilePhoto field (could be null if not set)
+      return user;
+    } catch (error) {
+      throw new Error("Failed to get existing photo");
+    }
   }
-}
-
-
-
-
-
-
-
 }

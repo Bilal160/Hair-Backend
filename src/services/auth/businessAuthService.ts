@@ -9,7 +9,7 @@ import { PasswordReset } from "../../models/passwordReset";
 import { EmailVerification } from "../../models/emailVerificationsTokens";
 
 export class BusinessAuthService {
-  constructor(private readonly BusinessAuthService: BusinessAuthService) { }
+  constructor(private readonly BusinessAuthService: BusinessAuthService) {}
 
   static async registerUser(user: IUser) {
     try {
@@ -20,11 +20,10 @@ export class BusinessAuthService {
       });
 
       const accessToken = await generateAccessToken(
-        (newUser._id as any).toString(),
+        (newUser._id as any).toString()
       );
       const refreshToken = await generateRefreshToken(
-        (newUser._id as any).toString(),
-
+        (newUser._id as any).toString()
       );
 
       const {
@@ -32,7 +31,6 @@ export class BusinessAuthService {
         createdAt,
         updatedAt,
         __v,
-
 
         ...userWithoutPassword
       } = newUser.toObject();
@@ -57,13 +55,9 @@ export class BusinessAuthService {
       throw new Error("Invalid credentials");
     }
 
-    const accessToken = await generateAccessToken(
-      (user._id as any).toString(),
-
-    );
+    const accessToken = await generateAccessToken((user._id as any).toString());
     const refreshToken = await generateRefreshToken(
-      (user._id as any).toString(),
-
+      (user._id as any).toString()
     );
 
     const {
@@ -87,9 +81,9 @@ export class BusinessAuthService {
 
     const updatedUser = (await User.findByIdAndUpdate(userId, updates, {
       new: true,
-    }).select(
-      "-password -createdAt -updatedAt -__v -id -stripeCustomerId "
-    )) as IUser;
+    })
+      .select("-password -createdAt -updatedAt -__v -id -stripeCustomerId ")
+      .populate("profilePhoto", "url key")) as IUser;
 
     return updatedUser;
   }
@@ -170,8 +164,8 @@ export class BusinessAuthService {
   static async userByEmailWithPassword(email: string) {
     try {
       const user = await User.findOne({ email }).populate({
-        "path": "profilePhoto",
-        "select": "url key",
+        path: "profilePhoto",
+        select: "url key",
       });
       if (!user) {
         throw new Error("User not found");
@@ -326,9 +320,7 @@ export class BusinessAuthService {
     }
   }
 
-
-
- static async formattedData(data: any) {
+  static async formattedData(data: any) {
     try {
       console.log("Raw incoming data keys:", Object.keys(data));
 
@@ -356,76 +348,66 @@ export class BusinessAuthService {
     }
   }
 
-
-static async createformattedData(data: any) {
-
+  static async createformattedData(data: any) {
     console.log("Received data for formatting:", data);
 
     console.log("Raw incoming data keys:", Object.keys(data));
-  try {
-    const cleanedData: Record<string, any> = {};
-    for (const [key, value] of Object.entries(data)) {
-      cleanedData[key.trim()] = value;
+    try {
+      const cleanedData: Record<string, any> = {};
+      for (const [key, value] of Object.entries(data)) {
+        cleanedData[key.trim()] = value;
+      }
+
+      console.log("Cleaned Data:", cleanedData);
+
+      // Prepare businessLocation object
+      const businessLocation = {
+        type: "Point",
+        coordinates: [
+          Number(cleanedData.longitude),
+          Number(cleanedData.latitude),
+        ],
+        state: cleanedData.state,
+        city: cleanedData.city,
+        postalCode: cleanedData.postalCode,
+        streetAddress: cleanedData.streetAddress,
+      };
+
+      // Group business info
+      const businessInfo = {
+        businessName: cleanedData.businessName,
+        businessDescription: cleanedData.businessDescription,
+        operatingHours: cleanedData.operatingHours,
+        phone: cleanedData.businessPhone,
+        businessLocation,
+      };
+
+      // Return formatted payload
+      return {
+        email: cleanedData.email,
+        name: cleanedData.name,
+        password: cleanedData.password,
+        confirmPassword: cleanedData.confirmPassword,
+        phone: cleanedData.phone,
+        businessInfo,
+      };
+    } catch (error) {
+      throw new Error("Failed to format data");
     }
-
-    console.log("Cleaned Data:", cleanedData);
-
-    // Prepare businessLocation object
-    const businessLocation = {
-      type: "Point",
-      coordinates: [
-        Number(cleanedData.longitude),
-        Number(cleanedData.latitude)
-      ],
-      state: cleanedData.state,
-      city: cleanedData.city,
-      postalCode: cleanedData.postalCode,
-      streetAddress: cleanedData.streetAddress,
-    };
-
-    // Group business info
-    const businessInfo = {
-      businessName: cleanedData.businessName,
-      businessDescription: cleanedData.businessDescription,
-      operatingHours: cleanedData.operatingHours,
-      phone: cleanedData.businessPhone,
-      businessLocation,
-    };
-
-    // Return formatted payload
-    return {
-      email: cleanedData.email,
-      name: cleanedData.name,
-      password: cleanedData.password,
-      confirmPassword: cleanedData.confirmPassword,
-      phone: cleanedData.phone,
-      businessInfo,
-    };
-  } catch (error) {
-    throw new Error("Failed to format data");
   }
-}
 
-
-static async getExistingPhoto(userId: string) {
-  try {
-    const user = await User.findById(userId)
-    .select("profilePhotoId")
-    .populate({
-      "path": "profilePhoto",
-      "select": "url key _id",
-    });
-    // Return the profilePhoto field (could be null if not set)
-    return user;
-  } catch (error) {
-    throw new Error("Failed to get existing photo");
+  static async getExistingPhoto(userId: string) {
+    try {
+      const user = await User.findById(userId)
+        .select("profilePhotoId")
+        .populate({
+          path: "profilePhoto",
+          select: "url key _id",
+        });
+      // Return the profilePhoto field (could be null if not set)
+      return user;
+    } catch (error) {
+      throw new Error("Failed to get existing photo");
+    }
   }
-}
-
-
-
-
-
-
-
 }

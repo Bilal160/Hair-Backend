@@ -31,14 +31,23 @@ export const sendMail = async (
 ) => {
   // Create a transporter with your SMTP configuration
 
+  // const transporter = nodemailer.createTransport({
+  //   host: process.env.MAIL_HOST || "smtp.zeptomail.com",
+  //   port: Number(process.env.MAIL_PORT) || 465,
+  //   //secure: true, // upgrade later with STARTTLS
+  //   secure: true,
+  //   auth: {
+  //     user: process.env.MAIL_USERNAME,
+  //     pass: process.env.MAIL_PASSWORD,
+  //   },
+  // });
   const transporter = nodemailer.createTransport({
-    host: process.env.MAIL_HOST || "smtp.zeptomail.com",
-    port: Number(process.env.MAIL_PORT) || 465,
-    //secure: true, // upgrade later with STARTTLS
-    secure: true,
+    host: process.env.MAIL_HOST || "smtp.gmail.com",
+    port: Number(process.env.MAIL_PORT) || 587,
+    secure: false, // use STARTTLS
     auth: {
       user: process.env.MAIL_USERNAME,
-      pass: process.env.MAIL_PASSWORD,
+      pass: process.env.MAIL_PASSWORD, // your App Password
     },
   });
 
@@ -49,16 +58,7 @@ export const sendMail = async (
     name,
     additionalData
   );
-  // // Define the email options
-  // const mailOptions = {
-  //   from: "your_email_address",
-  //   to: "recipient@example.com",
-  //   subject: "Test Email from Nodemailer",
-  //   text: "Hello from Nodemailer with TypeScript!",
-  //   html: "<p>Hello from <b>Nodemailer</b> with <i>TypeScript</i>!</p>"
-  // };
 
-  // Send the email
   try {
     const info = await transporter.sendMail(mailOptions);
     console.log("Email sent: " + info.messageId);
@@ -127,7 +127,7 @@ function emailTemplates(
 
                 Thank you,  
 
-                Roche CGM`,
+                Crownity`,
     };
   }
 

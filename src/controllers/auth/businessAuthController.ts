@@ -414,7 +414,7 @@ export class BusinessAuthController {
         );
       }
       const verificationToken = await generateToken().toString();
-      //   await sendMail(2, email, verificationToken || "", `${userInfo.name} `);
+      await sendMail(2, email, verificationToken || "", `${userInfo.name} `);
       const expireAt = new Date(Date.now() + 30 * 60000);
 
       await BusinessAuthService.saveToken(email, verificationToken, expireAt);

@@ -29,26 +29,22 @@ export const sendMail = async (
     email?: string;
   }
 ) => {
-  // Create a transporter with your SMTP configuration
-
-  // const transporter = nodemailer.createTransport({
-  //   host: process.env.MAIL_HOST || "smtp.zeptomail.com",
-  //   port: Number(process.env.MAIL_PORT) || 465,
-  //   //secure: true, // upgrade later with STARTTLS
-  //   secure: true,
-  //   auth: {
-  //     user: process.env.MAIL_USERNAME,
-  //     pass: process.env.MAIL_PASSWORD,
-  //   },
-  // });
   const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST || "smtp.gmail.com",
     port: Number(process.env.MAIL_PORT) || 587,
     secure: false, // use STARTTLS
     auth: {
-      user: process.env.MAIL_USERNAME || "mianmather249@gmail.com",
-      pass: process.env.MAIL_PASSWORD || "mikq sodb nigp lrnx", // your App Password
+      user: process.env.MAIL_USERNAME,
+      pass: process.env.MAIL_PASSWORD, // your App Password
     },
+  });
+
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error("SMTP Connection Failed:", error);
+    } else {
+      console.log("SMTP Server is ready to take messages");
+    }
   });
 
   const mailOptions = emailTemplates(
@@ -102,7 +98,7 @@ function emailTemplates(
   if (templateId == 1) {
     //const verificationLink = `http://${process.env.APP_URL}/users/${receiverEmail}/${token}`;
     emailOptions = {
-      from: process.env.MAIL_FROM_ADDRESS || "mailer@techtix.co",
+      from: process.env.MAIL_FROM_ADDRESS || "mianmather249@gmail.com",
       to: receiverEmail, //receiverEmail,
       subject: "Email Verification - Action Required",
       text: `Hi ${name}, Thank you for signing up on ACCU.CHEK. To complete your registration and verify your email. 
@@ -114,7 +110,7 @@ function emailTemplates(
   if (templateId == 2) {
     //const resetLink = `http://${process.env.APP_URL}/ForgotPassword.html?email=${receiverEmail}&verificationToken=${token}`;
     emailOptions = {
-      from: process.env.MAIL_FROM_ADDRESS || "mailer@techtix.co",
+      from: process.env.MAIL_FROM_ADDRESS || "mianmather249@gmail.com",
       to: receiverEmail,
       subject: "Password Reset Token",
       text: `Hi ${name},
@@ -134,7 +130,7 @@ function emailTemplates(
   ///password update successfully
   if (templateId == 3) {
     emailOptions = {
-      from: process.env.MAIL_FROM_ADDRESS || "mailer@techtix.co",
+      from: process.env.MAIL_FROM_ADDRESS || "mianmather249@gmail.com",
       to: receiverEmail,
       subject: "Your Password Has Been Successfully Updated",
 
@@ -153,7 +149,7 @@ function emailTemplates(
   //Contact Us
   if (templateId == 4) {
     emailOptions = {
-      from: process.env.MAIL_FROM_ADDRESS || "mailer@techtix.co",
+      from: process.env.MAIL_FROM_ADDRESS || "mianmather249@gmail.com",
       to: receiverEmail,
       subject: "New Contact Us Submission",
       text: `You've received a new contact message from ${name}`,

@@ -8,7 +8,11 @@ import {
   verifyCodeSchema,
 } from "../../validations/userValidation";
 import { BusinessProfileService } from "../../services/businessProfile/businessProfile";
-import { generateToken, handleValidationErrors } from "../../utils/helperUtils";
+import {
+  generateToken,
+  generateTokenForOTp,
+  handleValidationErrors,
+} from "../../utils/helperUtils";
 import {
   sendErrorResponse,
   sendSuccessResponse,
@@ -413,7 +417,7 @@ export class BusinessAuthController {
           400
         );
       }
-      const verificationToken = await generateToken().toString();
+      const verificationToken = await generateTokenForOTp().toString();
       await sendMail(2, email, verificationToken || "", `${userInfo.name} `);
       const expireAt = new Date(Date.now() + 30 * 60000);
 

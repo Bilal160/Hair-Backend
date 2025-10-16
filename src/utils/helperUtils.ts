@@ -37,6 +37,12 @@ function generateToken() {
   return token;
 }
 
+function generateTokenForOTp() {
+  // Generate a random 4-digit number between 1000 and 9999
+  const token = Math.floor(Math.random() * 9000) + 1000;
+  return token;
+}
+
 export const ComparePassword = async (
   newPassword: string,
   oldPassword: string
@@ -72,7 +78,12 @@ function parseExpiryDuration(duration: string): number {
   }
 }
 
-export { PasswordEncrypt, generateToken, parseExpiryDuration };
+export {
+  PasswordEncrypt,
+  generateToken,
+  parseExpiryDuration,
+  generateTokenForOTp,
+};
 
 export const handleValidationErrors = (error: any): string => {
   console.log(error, "error in handleValidationErrors");

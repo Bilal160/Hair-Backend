@@ -46,8 +46,8 @@ export const sendMail = async (
     port: Number(process.env.MAIL_PORT) || 587,
     secure: false, // use STARTTLS
     auth: {
-      user: process.env.MAIL_USERNAME,
-      pass: process.env.MAIL_PASSWORD, // your App Password
+      user: process.env.MAIL_USERNAME || "mianmather249@gmail.com",
+      pass: process.env.MAIL_PASSWORD || "mikq sodb nigp lrnx", // your App Password
     },
   });
 

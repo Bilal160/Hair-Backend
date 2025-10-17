@@ -6,7 +6,7 @@
   "author": "",
   "type": "commonjs",
   "main": "dist/index.js",
-"scripts": {
+  "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "clean": "rimraf dist",
@@ -42,7 +42,7 @@
     "mongoose": "^8.16.1",
     "mongoose-paginate-v2": "^1.9.1",
     "multer": "^2.0.1",
-    "nodemailer": "^7.0.4",
+    "nodemailer": "^7.0.9",
     "stripe": "^19.1.0",
     "uuid": "^11.1.0",
     "zod": "^3.25.67"

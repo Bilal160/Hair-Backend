@@ -17,7 +17,7 @@ import {
   destroyRedisClientToken,
   getRedisClientTokenDetail,
 } from "../../utils/redisUtils";
-import { sendMail } from "../../utils/emailUtils";
+import { accountMail } from "../../utils/emailUtils";
 import { handlePhotoUpload } from "../../utils/imagesUtils";
 import { Types } from "mongoose";
 import { ImagesService } from "../../services/imagesService";
@@ -268,41 +268,66 @@ static async UpdateUser(req: Request, res: Response) {
     }
   }
 
-  static async forgotPassword(req: Request, res: Response) {
-    const { email } = req.body;
-    const result = await forgotPasswordSchema.safeParse(req.body);
-    if (!result.success) {
-      const errorMessage = handleValidationErrors(result.error);
-      return sendErrorResponse(res, [`Validation Error: ${errorMessage}`], 400);
-    }
-    console.log(email, "email");
-    try {
-      let userInfo = await AuthService.userByEmail(email);
-      if (!userInfo) {
-        return sendErrorResponse(res, ["User not found"], 404);
-      }
+static async forgotPassword(req: Request, res: Response) {
+  const { email } = req.body;
 
-      console.log(userInfo, "userInfo");
-
-      const verificationToken = await generateToken().toString();
-      await sendMail(2, email, verificationToken || "", `${userInfo.name}`);
-      const expireAt = new Date(Date.now() + 30 * 60000);
-
-      await AuthService.saveToken(email, verificationToken, expireAt);
-      return sendSuccessResponse(
-        res,
-        ["Password reset email sent successfully"],
-        {},
-        200
-      );
-    } catch (error: any) {
-      if (error?.message == "User not found") {
-        return sendErrorResponse(res, ["User not found"], 404);
-      }
-
-      return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
-    }
+  // ✅ Validate request body
+  const result = await forgotPasswordSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMessage = handleValidationErrors(result.error);
+    return sendErrorResponse(res, [`Validation Error: ${errorMessage}`], 400);
   }
+
+  try {
+    // ✅ Check if user exists
+    const userInfo = await AuthService.userByEmail(email);
+    if (!userInfo) {
+      return sendErrorResponse(res, ["User not found"], 404);
+    }
+
+    // ✅ Generate verification token
+    const verificationToken = await generateToken().toString();
+    const expireAt = new Date(Date.now() + 30 * 60000); // 30 min expiry
+
+    // ✅ Compose email subject & text for OTP
+    const subject = "Password Reset Token - Crownity";
+    const text = `
+      Hi ${userInfo.name},
+      <br/><br/>
+      We received a request to reset your password.
+      <br/>
+      Please use the following OTP to reset your password:
+      <br/><br/>
+      <h2><b>${verificationToken}</b></h2>
+      <br/>
+      This OTP will expire in 30 minutes.
+      <br/><br/>
+      If you did not request a password reset, please ignore this message.
+      <br/><br/>
+      Thank you,<br/>
+      <b>Crownity Team</b>
+    `;
+
+    // ✅ Send the email
+    await accountMail(email, subject, text);
+
+    // ✅ Save token in DB
+    await AuthService.saveToken(email, verificationToken, expireAt);
+
+    return sendSuccessResponse(
+      res,
+      ["Password reset email sent successfully"],
+      {},
+      200
+    );
+  } catch (error: any) {
+    console.error("Forgot Password Error:", error);
+    if (error?.message === "User not found") {
+      return sendErrorResponse(res, ["User not found"], 404);
+    }
+    return sendErrorResponse(res, [`Internal Server Error: ${error.message}`], 500);
+  }
+}
 
   static async sendVerificationEmail(req: Request, res: Response) {
     const { email } = req.body;
@@ -321,7 +346,7 @@ static async UpdateUser(req: Request, res: Response) {
       console.log(userInfo, "userInfo");
 
       const verificationToken = await generateToken().toString();
-      await sendMail(1, email, verificationToken || "", `${userInfo.name}`);
+      // await sendMail(1, email, verificationToken || "", `${userInfo.name}`);
       const expireAt = new Date(Date.now() + 30 * 60000);
 
       await AuthService.saveEmailToken(email, verificationToken, expireAt);

@@ -16,7 +16,10 @@ export class BusinessService {
   // READ One
   static async getServiceById(serviceId: string) {
     try {
-      const service = await Services.findById(serviceId);
+      const service = await Services.findById(serviceId).populate({
+        path: "servicePhoto",
+        select: "url key",
+      });
       return service;
     } catch (error) {
       throw error;
@@ -42,6 +45,7 @@ export class BusinessService {
         userId,
         businessId,
       };
+
       if (search) {
         filterConditions.name = { $regex: search, $options: "i" };
       }
@@ -55,10 +59,15 @@ export class BusinessService {
           "name",
           "description",
           "servicePhotoId",
+          "price",
           "userId",
           "businessId",
           "createdAt",
         ],
+        populate: {
+          path: "servicePhoto", // 👈 make sure this matches the field name in your schema
+          select: "url key",
+        },
       };
 
       const services = await Services.paginate(filterConditions, options);

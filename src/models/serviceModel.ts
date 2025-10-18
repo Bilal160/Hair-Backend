@@ -60,9 +60,9 @@ ServiceSchema.virtual("business", {
   justOne: true,
 });
 
-ServiceSchema.virtual("featuredIma", {
+ServiceSchema.virtual("servicePhoto", {
   ref: "imagesUploads",
-  localField: "featuredImageId",
+  localField: "servicePhotoId",
   foreignField: "_id",
   justOne: true,
 });

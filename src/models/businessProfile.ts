@@ -39,7 +39,7 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
       postalCode: {
         type: String,
         default: "",
-        required: true,
+        required: false,
       },
       streetAddress: {
         type: String,
@@ -90,25 +90,25 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
     featuredImageId: {
       type: mongoose.Types.ObjectId,
       required: false,
-      ref:"ImagesUpload",
+      ref: "ImagesUpload",
       default: null,
     },
     businessPhotosIds: {
       type: [mongoose.Types.ObjectId],
-      ref:"ImagesUpload",
+      ref: "ImagesUpload",
       required: false,
       default: [],
     },
     businessNICPhotoIds: {
       type: [mongoose.Types.ObjectId],
       required: false,
-      ref:"ImagesUpload",
+      ref: "ImagesUpload",
       default: [],
     },
     businessRegistrationDocId: {
       type: mongoose.Types.ObjectId,
       required: false,
-      ref:"ImagesUpload",
+      ref: "ImagesUpload",
       default: null,
     },
   },
@@ -126,15 +126,12 @@ BusinessProfileSchema.virtual("user", {
   justOne: true,
 });
 
-
 BusinessProfileSchema.virtual("featuredImage", {
   ref: "imagesUploads",
   localField: "featuredImageId",
   foreignField: "_id",
   justOne: true,
 });
-
-
 
 BusinessProfileSchema.virtual("businessPhotos", {
   ref: "imagesUploads",
@@ -155,8 +152,6 @@ BusinessProfileSchema.virtual("businessRegistrationDoc", {
   foreignField: "_id",
   justOne: true,
 });
-
-
 
 // Create geospatial index for location-based queries
 BusinessProfileSchema.index({ businessLocation: "2dsphere" });

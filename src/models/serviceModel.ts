@@ -54,7 +54,7 @@ ServiceSchema.virtual("user", {
 });
 
 ServiceSchema.virtual("business", {
-  ref: "businessProfile",
+  ref: "BusinessProfile",
   localField: "businessId",
   foreignField: "_id",
   justOne: true,

@@ -6,6 +6,7 @@ import businessAuth from "./businessAuth";
 import businessProfile from "./businessProfile";
 import paymentRoutes from "./paymentRoutes";
 import services from "./services";
+import userServices from "./userServices";
 
 // Import route modules
 
@@ -32,6 +33,7 @@ export const routes = () => {
   router.use("/business", businessProfile);
   router.use("/business/payment", paymentRoutes);
   router.use("/business/services", services);
+  router.use("/user/services/viewAll/", userServices);
 
   return router;
 };

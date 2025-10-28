@@ -46,11 +46,12 @@ export const userAuthMiddleware = async (
       return;
     }
 
-  
+
 
     (req as any).userId = decoded.userId;
- 
+
     (req as any).token = token;
+    (req as any).roleType = decoded.roleType
 
     console.log("Token validation successful, proceeding...");
     next();

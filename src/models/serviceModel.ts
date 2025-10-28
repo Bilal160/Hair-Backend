@@ -69,7 +69,7 @@ ServiceSchema.virtual("servicePhoto", {
 
 ServiceSchema.plugin(paginate);
 
-export const Services = mongoose.model<
+export const Service = mongoose.model<
   IService,
   mongoose.PaginateModel<IService>
 >("Service", ServiceSchema, "services");

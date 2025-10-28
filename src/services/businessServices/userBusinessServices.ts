@@ -1,4 +1,4 @@
-import { Services } from "../../../src/models/serviceModel";
+import { Service } from "../../../src/models/serviceModel";
 import { ReviewsService } from "../../services/review/reviewServices";
 
 export class ListofServices {
@@ -46,7 +46,7 @@ export class ListofServices {
                 ],
             };
 
-            const deals = await Services.paginate(query, options);
+            const deals = await Service.paginate(query, options);
 
             return {
                 deals: deals.docs,
@@ -122,7 +122,7 @@ export class ListofServices {
             // CASE 1: sortBy = 2 (New Arrivals)
             // ============================================
             if (sortBy === 2) {
-                const allServices = await Services.find(query)
+                const allServices = await Service.find(query)
                     .select([
                         "_id",
                         "name",
@@ -215,7 +215,7 @@ export class ListofServices {
             // ============================================
             // CASE 2: Normal businessIds order
             // ============================================
-            const allServices = await Services.find(query)
+            const allServices = await Service.find(query)
                 .select([
                     "_id",
                     "name",

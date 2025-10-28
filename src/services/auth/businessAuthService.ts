@@ -9,7 +9,7 @@ import { PasswordReset } from "../../models/passwordReset";
 import { EmailVerification } from "../../models/emailVerificationsTokens";
 
 export class BusinessAuthService {
-  constructor(private readonly BusinessAuthService: BusinessAuthService) {}
+  constructor(private readonly BusinessAuthService: BusinessAuthService) { }
 
   static async registerUser(user: IUser) {
     try {
@@ -20,10 +20,12 @@ export class BusinessAuthService {
       });
 
       const accessToken = await generateAccessToken(
-        (newUser._id as any).toString()
+        (newUser._id as any).toString(),
+        newUser && newUser.roleType || 1
       );
       const refreshToken = await generateRefreshToken(
-        (newUser._id as any).toString()
+        (newUser._id as any).toString(),
+        newUser && newUser.roleType || 1
       );
 
       const {
@@ -55,9 +57,10 @@ export class BusinessAuthService {
       throw new Error("Invalid credentials");
     }
 
-    const accessToken = await generateAccessToken((user._id as any).toString());
+    const accessToken = await generateAccessToken((user._id as any).toString(), user && user.roleType || 1);
     const refreshToken = await generateRefreshToken(
-      (user._id as any).toString()
+      (user._id as any).toString(),
+      user && user.roleType || 1
     );
 
     const {

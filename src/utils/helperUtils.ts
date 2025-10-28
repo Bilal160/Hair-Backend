@@ -104,5 +104,35 @@ export const asyncHandler =
   (
     fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
   ): RequestHandler =>
-  (req, res, next) =>
-    Promise.resolve(fn(req, res, next)).catch(next);
+    (req, res, next) =>
+      Promise.resolve(fn(req, res, next)).catch(next);
+
+
+
+// utils/getCountryCode.ts
+
+export const getCountryCode = (countryName: string): string => {
+  const countries: Record<string, string> = {
+    Pakistan: "PK",
+    India: "IN",
+    "United States": "US",
+    "United Kingdom": "GB",
+    Canada: "CA",
+    Australia: "AU",
+    Germany: "DE",
+    France: "FR",
+    China: "CN",
+    Japan: "JP",
+    SaudiArabia: "SA",
+    UAE: "AE",
+  };
+
+  // Normalize for better matching (case-insensitive, trim spaces)
+  const normalized = countryName.trim().toLowerCase();
+
+  const foundKey = Object.keys(countries).find(
+    (key) => key.toLowerCase() === normalized
+  );
+
+  return foundKey ? countries[foundKey] : "PK"; // default fallback
+};

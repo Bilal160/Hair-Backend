@@ -8,10 +8,10 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 const config = {
   mongodb: {
     // TODO Change (or review) the url to your MongoDB:
-    url: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/bitesaver',
+    url: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/crownity',
 
     // TODO Change this to your database name:
-    databaseName: "bitesaver",
+    databaseName: "crownity",
 
     options: {
       //   connectTimeoutMS: 3600000, // increase connection timeout to 1 hour

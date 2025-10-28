@@ -47,6 +47,18 @@ const user: Schema = new Schema(
       required: false,
       default: null,
     },
+    stripeAccountId: {
+      type: String,
+      required: false,
+      default: null,
+    },
+
+    stripeOnboardingUrl: {
+      type: String,
+      required: false,
+      default: null,
+    },
+
   },
   {
     timestamps: true, // Automatically creates `createdAt` and `updatedAt`

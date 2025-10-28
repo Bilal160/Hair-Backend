@@ -9,7 +9,7 @@ import { PasswordReset } from "../../models/passwordReset";
 import { EmailVerification } from "../../models/emailVerificationsTokens";
 
 export class AuthService {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   static async registerUser(user: IUser) {
     try {
@@ -20,12 +20,13 @@ export class AuthService {
       });
 
       const accessToken = await generateAccessToken(
-        (newUser._id as any).toString()
+        (newUser._id as any).toString(),
+        newUser && newUser.roleType || 0
       );
       const refreshToken = await generateRefreshToken(
-        (newUser._id as any).toString()
+        (newUser._id as any).toString(),
+        newUser?.roleType || 0
       );
-
       const {
         password,
         createdAt,
@@ -55,9 +56,13 @@ export class AuthService {
       throw new Error("Invalid credentials");
     }
 
-    const accessToken = await generateAccessToken((user._id as any).toString());
+    const accessToken = await generateAccessToken(
+      (user._id as any).toString(),
+      user?.roleType || 0
+    );
     const refreshToken = await generateRefreshToken(
-      (user._id as any).toString()
+      (user._id as any).toString(),
+      user?.roleType || 0
     );
 
     const {

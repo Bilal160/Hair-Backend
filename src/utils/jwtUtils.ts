@@ -57,9 +57,19 @@ const ACCESS_TOKEN_EXPIRY_SECONDS = parseExpiryDuration(ACCESS_TOKEN_EXPIRY);
 //   });
 // };
 
-export const generateAccessToken = (userId: string ) => {
-  console.log(userId, );
-  const accessToken = jwt.sign({ userId,  }, ACCESS_TOKEN_SECRET, {
+
+
+// export function verifyAccessToken(token: string): any {
+//   return jwt.verify(token, ACCESS_TOKEN_SECRET);
+// }
+
+// export function verifyRefreshToken(token: string): any {
+//   return jwt.verify(token, REFRESH_TOKEN_SECRET);
+// }
+
+export const generateAccessToken = (userId: string, roleType: number) => {
+  console.log(userId, roleType);
+  const accessToken = jwt.sign({ userId, roleType }, ACCESS_TOKEN_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRY,
   } as any);
   setRedisClientToken(accessToken, userId, ACCESS_TOKEN_EXPIRY_SECONDS);
@@ -68,9 +78,9 @@ export const generateAccessToken = (userId: string ) => {
   return { accessToken, accessTokenExpiry };
 };
 
-export const generateRefreshToken = (userId: string, ) => {
-  console.log(userId, );
-  const refreshToken = jwt.sign({ userId,  }, REFRESH_TOKEN_SECRET, {
+export const generateRefreshToken = (userId: string, roleType: number) => {
+  console.log(userId, roleType);
+  const refreshToken = jwt.sign({ userId, roleType }, REFRESH_TOKEN_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRY,
   } as any);
   setRedisClientToken(refreshToken, userId, REFRESH_TOKEN_EXPIRY_SECONDS);

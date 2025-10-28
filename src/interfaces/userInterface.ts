@@ -9,9 +9,12 @@ export interface IUser extends Document {
   roleType?: number;
   profilePhotoId?: mongoose.Types.ObjectId | null;
 
+
   isVerified?: boolean;
 
   stripeCustomerId?: string;
+  stripeAccountId?: string;
+  stripeOnboardingUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

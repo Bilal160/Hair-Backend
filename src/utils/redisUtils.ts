@@ -1,7 +1,7 @@
-import Redis, {  RedisKey } from "ioredis";
+import Redis, { RedisKey } from "ioredis";
 import redisClient from "../config/redisConfig";
 
- 
+
 
 export const setRedisClientToken = async (
   token: RedisKey,

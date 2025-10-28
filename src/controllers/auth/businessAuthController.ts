@@ -11,6 +11,7 @@ import { BusinessProfileService } from "../../services/businessProfile/businessP
 import {
   generateToken,
   generateTokenForOTp,
+  getCountryCode,
   handleValidationErrors,
 } from "../../utils/helperUtils";
 import {
@@ -27,11 +28,11 @@ import { handlePhotoUpload } from "../../utils/imagesUtils";
 import { Types } from "mongoose";
 import { ImagesService } from "../../services/imagesService";
 import { signUpBusinessUser } from "../../validations/signUpBusinessValidation";
-import { createStripeCustomer } from "../../utils/stripeInfoUtils";
+import { createStripeConnectAccount, createStripeCustomer } from "../../utils/stripeInfoUtils";
 import { PaymentService } from "../../services/payment/paymentService";
 
 export class BusinessAuthController {
-  constructor(private readonly userService: IUser) {}
+  constructor(private readonly userService: IUser) { }
 
   static async RegisterBusinessUser(req: Request, res: Response) {
     console.log("Request Body:", req.body);
@@ -56,6 +57,15 @@ export class BusinessAuthController {
         email: result.data.email,
         name: result.data.name,
       });
+
+
+      // const { account, accountLink } = await createStripeConnectAccount({
+      //   email: result.data.email,
+      //   country: getCountryCode(result.data?.businessInfo.businessLocation.state) // dynamic country
+      // });
+
+
+
 
       const userExists = await BusinessAuthService.userExists(
         result.data.email

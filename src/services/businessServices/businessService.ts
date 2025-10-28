@@ -1,4 +1,4 @@
-import { Services } from "../../models/serviceModel";
+import { Service } from "../../models/serviceModel";
 import { IService } from "../../interfaces/serviceInterface";
 import paginate from "mongoose-paginate-v2";
 
@@ -6,7 +6,7 @@ export class BusinessService {
   // CREATE
   static async createService(serviceData: Partial<IService>) {
     try {
-      const newService = await Services.create(serviceData);
+      const newService = await Service.create(serviceData);
       return newService;
     } catch (error) {
       throw error;
@@ -16,7 +16,7 @@ export class BusinessService {
   // READ One
   static async getServiceById(serviceId: string) {
     try {
-      const service = await Services.findById(serviceId).populate({
+      const service = await Service.findById(serviceId).populate({
         path: "servicePhoto",
         select: "url key",
       });
@@ -70,7 +70,7 @@ export class BusinessService {
         },
       };
 
-      const services = await Services.paginate(filterConditions, options);
+      const services = await Service.paginate(filterConditions, options);
 
       return {
         services: services.docs,
@@ -89,7 +89,7 @@ export class BusinessService {
   // UPDATE
   static async updateService(serviceId: string, updateData: Partial<IService>) {
     try {
-      const updated = await Services.findByIdAndUpdate(serviceId, updateData, {
+      const updated = await Service.findByIdAndUpdate(serviceId, updateData, {
         new: true,
       });
       return updated;
@@ -101,7 +101,7 @@ export class BusinessService {
   // DELETE
   static async deleteService(serviceId: string) {
     try {
-      const deleted = await Services.findByIdAndDelete(serviceId);
+      const deleted = await Service.findByIdAndDelete(serviceId);
       return deleted;
     } catch (error) {
       throw error;

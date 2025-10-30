@@ -72,63 +72,20 @@ export class ListofServicesController {
         }
     }
 
-    // static async getDealsByBusinessId(req: Request, res: Response) {
-    //     try {
-    //         const { businessId } = req.params;
-    //         if (!businessId) {
-    //             return sendErrorResponse(res, ["Business ID is required"], 400);
-    //         }
-    //         const deals = await ListofServices.getDealsByBusinessId(
-    //             businessId
-    //         );
+    static async getService(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const service = await ListofServices.getServiceById(id);
+            if (!service) {
+                return sendErrorResponse(res, ["Service not found"], 404);
+            }
+            return sendSuccessResponse(res, ["Service fetched successfully"], {
+                service,
+            });
+        } catch (error: any) {
+            return sendErrorResponse(res, [error.message], 500);
+        }
+    }
 
-    //         if (deals.length === 0) {
-    //             return sendErrorResponse(res, ["No deals found"], 200);
-    //         }
-    //         return sendSuccessResponse(res, ["Deals fetched successfully"], {
-    //             deals,
-    //         });
-    //     } catch (error: any) {
-    //         return sendErrorResponse(res, ["Failed to fetch deals"], 500);
-    //     }
-    // }
 
-    // static async getMatchingDeals(req: Request, res: Response) {
-    //     try {
-    //         const { businessId } = req.params;
-    //         const { days, startTime, endTime } = req.body;
-
-    //         if (!businessId || !days || !startTime || !endTime) {
-    //             return res.status(400).json({ message: "Missing required fields" });
-    //         }
-
-    //         const deals = await ListofDealsHappyHoursService.getMatchingDeal({
-    //             businessId,
-    //             days,
-    //             timeRange: {
-    //                 startTime: new Date(startTime),
-    //                 endTime: new Date(endTime),
-    //             },
-    //         });
-
-    //         if (deals === null) {
-    //             return sendErrorResponse(
-    //                 res,
-    //                 ["No Happy Hour Deal found for specified time"],
-    //                 200
-    //             );
-    //         }
-
-    //         return sendSuccessResponse(
-    //             res,
-    //             ["Deals fetched successfully"],
-    //             {
-    //                 deal: deals,
-    //             },
-    //             200
-    //         );
-    //     } catch (error: any) {
-    //         return sendErrorResponse(res, ["Failed to fetch deals"], 500);
-    //     }
-    // }
 }

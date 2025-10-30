@@ -2,66 +2,7 @@ import { Service } from "../../../src/models/serviceModel";
 import { ReviewsService } from "../../services/review/reviewServices";
 
 export class ListofServices {
-    static async getListofDeals(
-        page: number,
-        limit: number,
-        categoryId: string,
-        businessIds: string[]
-    ) {
-        try {
-            const query: any = {};
 
-            if (categoryId) {
-                query.categoryId = categoryId;
-            }
-
-            if (businessIds && businessIds.length > 0) {
-                query.businessId = { $in: businessIds };
-            }
-
-            const options: any = {
-                page,
-                limit,
-                sort: { createdAt: -1 },
-                select: [
-                    "_id",
-                    "name",
-                    "price",
-                    "businessId",
-                    "categoryId",
-                    "dealPhotoIds",
-                    "isActive",
-                    "createdAt",
-                    "updatedAt",
-                ],
-                populate: [
-                    {
-                        path: "dealPhoto",
-                        select: "url _id webpUrl",
-                    },
-                    {
-                        path: "category",
-                        select: "name _id",
-                    },
-                ],
-            };
-
-            const deals = await Service.paginate(query, options);
-
-            return {
-                deals: deals.docs,
-                pagination: {
-                    page: deals.page,
-                    totalPages: deals.totalPages,
-                    totalDocs: deals.totalDocs,
-                    limit: deals.limit,
-                },
-            };
-        } catch (error: any) {
-            console.error("Error fetching deals:", error.message);
-            throw new Error("Failed to fetch deals");
-        }
-    }
 
 
     static async getServicesBySortedBusinessOrder(
@@ -285,6 +226,47 @@ export class ListofServices {
             throw new Error("Failed to fetch services by sorted business order");
         }
     }
+
+    static async getServiceById(serviceId: string) {
+        try {
+            const service = await Service.findById(serviceId)
+                .populate([
+                    // First-level population
+                    { path: "servicePhoto", select: "url _id webpUrl" },
+                    {
+                        path: "business",
+                        select:
+                            "businessName _id averageRating totalReviews reviews businessSlug slug subscriptionType websiteLink businessLocation businessPhotosIds businessNICPhotoIds businessRegistrationDocId featuredImageId",
+                        // 👇 Nested population inside business
+                        populate: [
+                            {
+                                path: "businessPhotos",
+                                select: "url _id webpUrl",
+                            },
+                            {
+                                path: "businessNICPhoto",
+                                select: "url _id webpUrl",
+                            },
+                            {
+                                path: "businessRegistrationDoc",
+                                select: "url _id webpUrl",
+                            },
+                            {
+                                path: "featuredImage",
+                                select: "url _id webpUrl",
+                            },
+                        ],
+                    },
+                ])
+                .lean();
+
+            return service;
+        } catch (error: any) {
+            console.error("Error fetching service by ID:", error.message);
+            throw error;
+        }
+    }
+
 
 
 

@@ -8,6 +8,7 @@ import paymentRoutes from "./paymentRoutes";
 import services from "./services";
 import userServices from "./userServices";
 import userBooking from "./userBooking"
+import review from "./reviews";
 
 // Import route modules
 
@@ -34,9 +35,9 @@ export const routes = () => {
   router.use("/business", businessProfile);
   router.use("/business/payment", paymentRoutes);
   router.use("/business/services", services);
-  router.use("/user/services/viewAll/", userServices);
+  router.use("/user/services", userServices);
   router.use("/user/booking/", userBooking);
-
+  router.use("/user/review", review);
 
   return router;
 };

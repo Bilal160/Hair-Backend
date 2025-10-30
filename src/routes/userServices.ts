@@ -13,5 +13,11 @@ router.get(
     asyncHandler(ListofServicesController.getAllServices)
 );
 
+router.get(
+    "/:id",
+
+    asyncHandler(ListofServicesController.getService)
+);
+
 
 export = router;

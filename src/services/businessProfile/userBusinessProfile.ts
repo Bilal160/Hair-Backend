@@ -1,6 +1,6 @@
 import { BusinessProfile } from "../../models/businessProfile";
 import { IBusinessProfile } from "../../interfaces/businessProfileInterface";
-import {  ImagesUpload } from "../../models/profilePhoto";
+import { ImagesUpload } from "../../models/profilePhoto";
 import { ReviewsService } from "../review/reviewServices";
 
 import { getPostalCodeFromLatLng } from "../../utils/googleMap";
@@ -380,6 +380,144 @@ export class UserBusinessProfileService {
 
 
 
+  // static async getBusinessIdsSortedBy({
+  //   longitude,
+  //   latitude,
+  //   sortType,
+  // }: {
+  //   longitude: number;
+  //   latitude: number;
+  //   sortType: number; // 0: bestRating, 1: nearToMe
+  // }) {
+  //   console.log(longitude, latitude, sortType, "longitude, latitude, sortType");
+  //   try {
+  //     if (sortType === 0) {
+  //       // ---- BEST RATING CASE ----
+  //       // Fetch ALL businesses with subscriptionType
+  //       const businesses = await BusinessProfile.find({}, { _id: 1, subscriptionType: 1 });
+
+  //       const allBusinessIds = businesses.map((b) => ({
+  //         _id: b._id?.toString(),
+  //         subscriptionType: b.subscriptionType || "standard",
+  //       }));
+
+  //       console.log(`Total businesses found: ${allBusinessIds.length}`);
+
+  //       console.log("Sorting by Best Rating...");
+  //       const withReviews = await Promise.all(
+  //         allBusinessIds.map(async (b) => {
+  //           const { averageRating, totalReviews } =
+  //             await ReviewsService.getReviews(b._id as string);
+  //           return {
+  //             _id: b._id,
+  //             subscriptionType: b.subscriptionType,
+  //             averageRating: averageRating || 0,
+  //             totalReviews: totalReviews || 0,
+  //           };
+  //         })
+  //       );
+
+  //       const bestRated = withReviews
+  //         .sort((a: any, b: any) => {
+  //           // First priority: sponsored businesses
+  //           if (a.subscriptionType === "sponsored" && b.subscriptionType !== "sponsored") {
+  //             return -1; // a comes first
+  //           }
+  //           if (b.subscriptionType === "sponsored" && a.subscriptionType !== "sponsored") {
+  //             return 1; // b comes first
+  //           }
+
+  //           // Second priority: rating (for same subscription type)
+  //           if (b.averageRating !== a.averageRating) {
+  //             return b.averageRating - a.averageRating; // higher rating first
+  //           }
+  //           // Third priority: number of reviews
+  //           return b.totalReviews - a.totalReviews; // more reviews first
+  //         })
+  //         .map((r) => r._id);
+
+  //       console.log(`Best Rating: Returning ${bestRated.length} businesses`);
+  //       return bestRated;
+  //     }
+
+  //     if (sortType === 1) {
+  //       // ---- NEAR TO ME CASE ----
+  //       console.log("Sorting by Near to Me...");
+
+  //       // Step 1: Get businesses within 25km with subscriptionType
+  //       const nearbyBusinesses = await BusinessProfile.aggregate([
+  //         {
+  //           $geoNear: {
+  //             near: { type: "Point", coordinates: [longitude, latitude] },
+  //             distanceField: "distance",
+  //             maxDistance: 25000, // 25 km
+  //             spherical: true,
+  //           },
+  //         },
+  //         {
+  //           $project: {
+  //             _id: 1,
+  //             distance: 1,
+  //             subscriptionType: 1,
+  //           },
+  //         },
+  //       ]);
+
+  //       // Sort nearby businesses: sponsored first, then by distance
+  //       const nearbySorted = nearbyBusinesses.sort((a, b) => {
+  //         // First priority: sponsored businesses
+  //         if (a.subscriptionType === "sponsored" && b.subscriptionType !== "sponsored") {
+  //           return -1; // a comes first
+  //         }
+  //         if (b.subscriptionType === "sponsored" && a.subscriptionType !== "sponsored") {
+  //           return 1; // b comes first
+  //         }
+  //         // Second priority: distance (for same subscription type)
+  //         return a.distance - b.distance;
+  //       });
+
+  //       const nearbyIds = nearbySorted.map((b) => b._id.toString());
+
+  //       console.log(`Near to Me: Found ${nearbyIds.length} within 25km`);
+
+  //       // Step 2: Fetch ALL other businesses outside 25km with subscriptionType
+  //       const allBusinessIds = await BusinessProfile.find(
+  //         { _id: { $nin: nearbyIds } },
+  //         { _id: 1, subscriptionType: 1 }
+  //       ).lean();
+
+  //       // Sort other businesses: sponsored first, then by _id for consistency
+  //       const otherSorted = allBusinessIds.sort((a, b) => {
+  //         // First priority: sponsored businesses
+  //         if (a.subscriptionType === "sponsored" && b.subscriptionType !== "sponsored") {
+  //           return -1; // a comes first
+  //         }
+  //         if (b.subscriptionType === "sponsored" && a.subscriptionType !== "sponsored") {
+  //           return 1; // b comes first
+  //         }
+  //         // Second priority: _id for consistency
+  //         return a._id.toString().localeCompare(b._id.toString());
+  //       });
+
+  //       const otherIds = otherSorted.map((b) => b._id.toString());
+
+  //       // Step 3: Combine (nearby first, then all others)
+  //       const finalList = [...nearbyIds, ...otherIds];
+
+  //       console.log(
+  //         `Near to Me: Returning total ${finalList.length} businesses`
+  //       );
+  //       return finalList;
+  //     }
+
+  //     throw new Error(
+  //       "Invalid sortType. Use 0 for bestRating or 1 for nearToMe"
+  //     );
+  //   } catch (err: any) {
+  //     throw new Error(`Failed to get sorted business IDs: ${err.message}`);
+  //   }
+  // }
+
   static async getBusinessIdsSortedBy({
     longitude,
     latitude,
@@ -391,132 +529,102 @@ export class UserBusinessProfileService {
   }) {
     console.log(longitude, latitude, sortType, "longitude, latitude, sortType");
     try {
+      // ---- Step 1: Get all nearby businesses (within 25 km) ----
+      const nearbyBusinesses = await BusinessProfile.aggregate([
+        {
+          $geoNear: {
+            near: { type: "Point", coordinates: [longitude, latitude] },
+            distanceField: "distance",
+            maxDistance: 25000, // 25 km radius
+            spherical: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            distance: 1,
+            subscriptionType: 1,
+          },
+        },
+      ]);
+
+      if (!nearbyBusinesses.length) {
+        console.log("No businesses found within 25 km range.");
+        return [];
+      }
+
+      console.log(`Found ${nearbyBusinesses.length} businesses within 25 km.`);
+
+      // ---- Step 2: Sorting logic based on sortType ----
       if (sortType === 0) {
-        // ---- BEST RATING CASE ----
-        // Fetch ALL businesses with subscriptionType
-        const businesses = await BusinessProfile.find({}, { _id: 1, subscriptionType: 1 });
+        // ✅ BEST RATING (but only within 25 km)
 
-        const allBusinessIds = businesses.map((b) => ({
-          _id: b._id?.toString(),
-          subscriptionType: b.subscriptionType || "standard",
-        }));
+        console.log("Sorting nearby businesses by Best Rating...");
 
-        console.log(`Total businesses found: ${allBusinessIds.length}`);
-
-        console.log("Sorting by Best Rating...");
         const withReviews = await Promise.all(
-          allBusinessIds.map(async (b) => {
-            const { averageRating, totalReviews } =
-              await ReviewsService.getReviews(b._id as string);
+          nearbyBusinesses.map(async (b) => {
+            const { averageRating, totalReviews } = await ReviewsService.getReviews(
+              b._id.toString()
+            );
             return {
-              _id: b._id,
-              subscriptionType: b.subscriptionType,
+              _id: b._id.toString(),
+              subscriptionType: b.subscriptionType || "standard",
               averageRating: averageRating || 0,
               totalReviews: totalReviews || 0,
+              distance: b.distance,
             };
           })
         );
 
-        const bestRated = withReviews
-          .sort((a: any, b: any) => {
-            // First priority: sponsored businesses
-            if (a.subscriptionType === "sponsored" && b.subscriptionType !== "sponsored") {
-              return -1; // a comes first
-            }
-            if (b.subscriptionType === "sponsored" && a.subscriptionType !== "sponsored") {
-              return 1; // b comes first
-            }
+        const sortedByRating = withReviews.sort((a, b) => {
+          // 1️⃣ Priority: Sponsored first
+          if (a.subscriptionType === "sponsored" && b.subscriptionType !== "sponsored")
+            return -1;
+          if (b.subscriptionType === "sponsored" && a.subscriptionType !== "sponsored")
+            return 1;
 
-            // Second priority: rating (for same subscription type)
-            if (b.averageRating !== a.averageRating) {
-              return b.averageRating - a.averageRating; // higher rating first
-            }
-            // Third priority: number of reviews
-            return b.totalReviews - a.totalReviews; // more reviews first
-          })
-          .map((r) => r._id);
+          // 2️⃣ Then by Rating (desc)
+          if (Number(b.averageRating ?? 0) !== Number(a.averageRating ?? 0))
+            return Number(b.averageRating ?? 0) > Number(a.averageRating ?? 0) ? -1 : 1;
 
-        console.log(`Best Rating: Returning ${bestRated.length} businesses`);
-        return bestRated;
-      }
+          // 3️⃣ Then by Total Reviews (desc)
+          if (Number(b.totalReviews ?? 0) !== Number(a.totalReviews ?? 0))
+            return Number(b.totalReviews ?? 0) > Number(a.totalReviews ?? 0) ? -1 : 1;
 
-      if (sortType === 1) {
-        // ---- NEAR TO ME CASE ----
-        console.log("Sorting by Near to Me...");
-
-        // Step 1: Get businesses within 25km with subscriptionType
-        const nearbyBusinesses = await BusinessProfile.aggregate([
-          {
-            $geoNear: {
-              near: { type: "Point", coordinates: [longitude, latitude] },
-              distanceField: "distance",
-              maxDistance: 25000, // 25 km
-              spherical: true,
-            },
-          },
-          {
-            $project: {
-              _id: 1,
-              distance: 1,
-              subscriptionType: 1,
-            },
-          },
-        ]);
-
-        // Sort nearby businesses: sponsored first, then by distance
-        const nearbySorted = nearbyBusinesses.sort((a, b) => {
-          // First priority: sponsored businesses
-          if (a.subscriptionType === "sponsored" && b.subscriptionType !== "sponsored") {
-            return -1; // a comes first
-          }
-          if (b.subscriptionType === "sponsored" && a.subscriptionType !== "sponsored") {
-            return 1; // b comes first
-          }
-          // Second priority: distance (for same subscription type)
+          // 4️⃣ Finally by Distance (nearest first)
           return a.distance - b.distance;
         });
 
-        const nearbyIds = nearbySorted.map((b) => b._id.toString());
-
-        console.log(`Near to Me: Found ${nearbyIds.length} within 25km`);
-
-        // Step 2: Fetch ALL other businesses outside 25km with subscriptionType
-        const allBusinessIds = await BusinessProfile.find(
-          { _id: { $nin: nearbyIds } },
-          { _id: 1, subscriptionType: 1 }
-        ).lean();
-
-        // Sort other businesses: sponsored first, then by _id for consistency
-        const otherSorted = allBusinessIds.sort((a, b) => {
-          // First priority: sponsored businesses
-          if (a.subscriptionType === "sponsored" && b.subscriptionType !== "sponsored") {
-            return -1; // a comes first
-          }
-          if (b.subscriptionType === "sponsored" && a.subscriptionType !== "sponsored") {
-            return 1; // b comes first
-          }
-          // Second priority: _id for consistency
-          return a._id.toString().localeCompare(b._id.toString());
-        });
-
-        const otherIds = otherSorted.map((b) => b._id.toString());
-
-        // Step 3: Combine (nearby first, then all others)
-        const finalList = [...nearbyIds, ...otherIds];
-
-        console.log(
-          `Near to Me: Returning total ${finalList.length} businesses`
-        );
-        return finalList;
+        console.log(`Best Rating (within 25km): Returning ${sortedByRating.length} businesses`);
+        return sortedByRating.map((b) => b._id);
       }
 
-      throw new Error(
-        "Invalid sortType. Use 0 for bestRating or 1 for nearToMe"
-      );
+      if (sortType === 1) {
+        // ✅ NEAR TO ME (within 25 km)
+        console.log("Sorting nearby businesses by Distance...");
+
+        const sortedByDistance = nearbyBusinesses.sort((a, b) => {
+          // 1️⃣ Sponsored first
+          if (a.subscriptionType === "sponsored" && b.subscriptionType !== "sponsored")
+            return -1;
+          if (b.subscriptionType === "sponsored" && a.subscriptionType !== "sponsored")
+            return 1;
+
+          // 2️⃣ Then by distance (nearest first)
+          return a.distance - b.distance;
+        });
+
+        console.log(`Near to Me (within 25km): Returning ${sortedByDistance.length} businesses`);
+        return sortedByDistance.map((b) => b._id.toString());
+      }
+
+      throw new Error("Invalid sortType. Use 0 for bestRating or 1 for nearToMe");
     } catch (err: any) {
+      console.error("Error in getBusinessIdsSortedBy:", err.message);
       throw new Error(`Failed to get sorted business IDs: ${err.message}`);
     }
   }
+
 
   static async getBusinessProfileBySlug(businessSlug: string) {
     try {

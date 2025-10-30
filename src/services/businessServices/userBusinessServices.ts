@@ -65,14 +65,12 @@ export class ListofServices {
 
 
     static async getServicesBySortedBusinessOrder(
-        businessIds: string[],
-        categoryId?: string, // kept for signature consistency
+        businessIds: string[], // kept for signature consistency
         limit?: number,
         page?: number,
         price?: number,
-        sortBy?: number,
-        time?: string, // kept for signature consistency
-        days?: string[] // kept for signature consistency
+        sortBy?: number,// kept for signature consistency // kept for signature consistency
+        searchParam?: string
     ) {
         try {
             if ((!businessIds || businessIds.length === 0) && sortBy !== 2) {
@@ -94,9 +92,16 @@ export class ListofServices {
                 query.businessId = { $in: businessIds };
             }
 
-            // ✅ Removed categoryId, time, and days filters completely
+            // ✅ Search filter (applies to both name and description)
+            if (searchParam && searchParam.trim() !== "") {
+                const regex = new RegExp(searchParam.trim(), "i"); // case-insensitive
+                query.$or = [
+                    { name: { $regex: regex } },
+                    { description: { $regex: regex } },
+                ];
+            }
 
-            // ✅ Price filter (kept)
+            // ✅ Price filter
             if (price) {
                 query.$expr = {
                     $lte: [
@@ -123,19 +128,6 @@ export class ListofServices {
             // ============================================
             if (sortBy === 2) {
                 const allServices = await Service.find(query)
-                    .select([
-                        "_id",
-                        "name",
-                        "price",
-                        "businessId",
-                        "categoryId",
-                        "servicePhotoId",
-                        "isActive",
-                        "days",
-                        "timeRange",
-                        "createdAt",
-                        "updatedAt",
-                    ])
                     .populate([
                         { path: "servicePhoto", select: "url _id webpUrl" },
                         {
@@ -146,9 +138,8 @@ export class ListofServices {
                     ])
                     .lean();
 
-                const filteredServices = allServices; // no time/day filtering
+                const filteredServices = allServices;
 
-                // Attach reviews
                 const businessIdsInServices = [
                     ...new Set(filteredServices.map((s) => s.businessId.toString())),
                 ];
@@ -189,8 +180,7 @@ export class ListofServices {
                             ];
                         if (aType !== bType) return aType - bType;
                         return (
-                            new Date(b.createdAt).getTime() -
-                            new Date(a.createdAt).getTime()
+                            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                         );
                     });
 
@@ -216,19 +206,6 @@ export class ListofServices {
             // CASE 2: Normal businessIds order
             // ============================================
             const allServices = await Service.find(query)
-                .select([
-                    "_id",
-                    "name",
-                    "price",
-                    "businessId",
-                    "categoryId",
-                    "servicePhotoId",
-                    "isActive",
-                    "days",
-                    "timeRange",
-                    "createdAt",
-                    "updatedAt",
-                ])
                 .populate([
                     { path: "servicePhoto", select: "url _id webpUrl" },
                     {
@@ -239,7 +216,7 @@ export class ListofServices {
                 ])
                 .lean();
 
-            const filteredServices = allServices; // ✅ no day/time filter
+            const filteredServices = allServices;
 
             const businessReviews = await Promise.all(
                 businessIds.map(async (businessId) => {
@@ -308,6 +285,7 @@ export class ListofServices {
             throw new Error("Failed to fetch services by sorted business order");
         }
     }
+
 
 
 

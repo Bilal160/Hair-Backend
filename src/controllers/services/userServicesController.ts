@@ -19,6 +19,7 @@ export class ListofServicesController {
                 latitude,
                 price,
                 time,
+                searchParam
             } = req.query;
 
             let businessIds: string[] = [];
@@ -45,12 +46,11 @@ export class ListofServicesController {
             const services =
                 await ListofServices.getServicesBySortedBusinessOrder(
                     businessIds,
-                    categoryId as string,
                     Number(limit),
                     Number(page),
                     Number(price),
                     Number(sortBy),
-                    time as string
+                    searchParam as string
                 );
 
             let resMessage = "Services Fetch Successfully";

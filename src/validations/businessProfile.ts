@@ -20,6 +20,7 @@ export const updateBusinessProfileSchema = z.object({
   instagramId: z.string().optional(),
 
   operatingHours: z.string().optional(),
+  operatingDays: z.string().optional(),
 
   userId: z.string().optional(), // required in DB, optional here for update
 

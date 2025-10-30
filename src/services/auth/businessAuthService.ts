@@ -381,6 +381,7 @@ export class BusinessAuthService {
         businessName: cleanedData.businessName,
         businessDescription: cleanedData.businessDescription,
         operatingHours: cleanedData.operatingHours,
+        operatingDays: cleanedData.operatingHours,
         phone: cleanedData.businessPhone,
         businessLocation,
       };

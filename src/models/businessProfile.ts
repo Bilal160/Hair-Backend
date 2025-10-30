@@ -57,6 +57,11 @@ export const BusinessProfileSchema: Schema = new mongoose.Schema(
       required: false,
       default: "",
     },
+    operatingDays: {
+      type: String,
+      required: false,
+      default: "",
+    },
     subscriptionType: {
       type: String,
       required: false,

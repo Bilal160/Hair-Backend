@@ -19,6 +19,7 @@ export interface IBusinessProfile extends Document {
   phone: string;
 
   operatingHours: string;
+  operatingDays: string;
 
   subscriptionType: string;
   userId: mongoose.Types.ObjectId;

@@ -705,6 +705,7 @@ export class BusinessProfileService {
         businessName: cleanedData.businessName,
         businessDescription: cleanedData.businessDescription,
         operatingHours: cleanedData.operatingHours,
+        operatingDays: cleanedData.operatingDays,
         phone: cleanedData.businessPhone,
         businessLocation,
 

@@ -540,6 +540,7 @@ export class BusinessProfileService {
   }
 
   static async getIdofBusinessProfileUserId(userId: string) {
+    console.log(userId)
     try {
       const businessProfile = await BusinessProfile.findOne({ userId });
       return businessProfile?._id?.toString();

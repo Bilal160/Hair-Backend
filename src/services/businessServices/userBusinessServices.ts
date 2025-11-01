@@ -236,7 +236,7 @@ export class ListofServices {
                     {
                         path: "business",
                         select:
-                            "businessName operatingHours  _id businessDescription averageRating totalReviews reviews businessSlug slug subscriptionType websiteLink businessLocation businessPhotosIds businessNICPhotoIds businessRegistrationDocId featuredImageId",
+                            "businessName operatingHours operatingDays  _id businessDescription averageRating totalReviews reviews businessSlug slug subscriptionType websiteLink businessLocation businessPhotosIds businessNICPhotoIds businessRegistrationDocId featuredImageId",
                         // 👇 Nested population inside business
                         populate: [
                             {

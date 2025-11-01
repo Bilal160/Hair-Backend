@@ -89,8 +89,8 @@ export class BusinessServiceController {
 
   static async getAllServices(req: Request, res: Response) {
     const userId = req.userId;
-    const businessId =
-      await BusinessProfileService.getIdofBusinessProfileUserId(userId);
+    console.log(userId)
+    const businessId = await BusinessProfileService.getIdofBusinessProfileUserId(userId.toString());
 
     console.log("list call ");
     const page = parseInt(req.query.page as string) || 1;

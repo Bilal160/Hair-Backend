@@ -5,7 +5,7 @@ export const signUpBusinessUser = z.object({
   name: z.string({ required_error: "Name is required" }).min(1, { message: "Name must be at least 1 character" }),
   password: z.string({ required_error: "Password is required" }).min(8, { message: "Password must be at least 8 characters" }),
   confirmPassword: z.string({ required_error: "Confirm password is required" }),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, { message: "Invalid phone number format" }).optional(),
+  phone: z.string({ required_error: "Business phone is required" }),
 
   businessInfo: z.object({
     businessName: z.string({ required_error: "Business name is required" }).min(1),

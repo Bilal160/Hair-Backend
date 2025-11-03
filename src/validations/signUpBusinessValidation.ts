@@ -11,14 +11,14 @@ export const signUpBusinessUser = z.object({
     businessName: z.string({ required_error: "Business name is required" }).min(1),
     businessDescription: z.string({ required_error: "Business description is required" }).min(1),
     operatingHours: z.string({ required_error: "Operating hours is required" }).min(1),
-    phone: z.string({ required_error: "Business phone is required" }).regex(/^\+?[1-9]\d{1,14}$/, { message: "Invalid business phone number format" }),
+    phone: z.string({ required_error: "Business phone is required" }),
     businessLocation: z.object({
       type: z.literal("Point"),
       coordinates: z.tuple([z.number(), z.number()]), // [longitude, latitude]
-      state: z.string({ required_error: "State is required" }).min(1),
-      city: z.string({ required_error: "City is required" }).min(1),
-      postalCode: z.string({ required_error: "Postal code is required" }).min(1),
-      streetAddress: z.string({ required_error: "Street address is required" }).min(1),
+      state: z.string({ required_error: "State is required" }).optional(),
+      city: z.string({ required_error: "City is required" }).optional(),
+      postalCode: z.string({ required_error: "Postal code is required" }).optional(),
+      streetAddress: z.string({ required_error: "Street address is required" }).optional(),
     }),
   }),
 }).refine((data) => data.password === data.confirmPassword, {

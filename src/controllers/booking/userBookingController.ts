@@ -67,7 +67,7 @@ export class UserBookingController {
             const result = await userBookingService.fetchBookingsWithPagination({
                 userId: userId as string,
                 businessId: businessId as string,
-                active: Number(active) || undefined,
+                bookingStatus: Number(active) || undefined,
                 bookingDate: bookingDate as string,
                 page,
                 limit,

@@ -1,5 +1,6 @@
 import { Booking } from "../../models/bookingModel";
 import { BookingInterfase } from "../../interfaces/bookingInterface";
+import { formatToUTC } from "../../utils/helperUtils";
 
 export class userBookingService {
     // CREATE
@@ -41,14 +42,14 @@ export class userBookingService {
     static async fetchBookingsWithPagination({
         userId,
         businessId,
-        active, // 0 = pending, 1 = approved, 2 = completed
+        bookingStatus, // 0 = pending, 1 = approved, 2 = completed
         bookingDate,
         page = 1,
         limit = 10,
     }: {
         userId?: string;
         businessId?: string;
-        active?: number;
+        bookingStatus?: number;
         bookingDate?: string;
         page?: number;
         limit?: number;
@@ -58,34 +59,25 @@ export class userBookingService {
 
             if (userId) filterConditions.bookingUserId = userId;
             if (businessId) filterConditions.businessId = businessId;
-            if (typeof active === "number") filterConditions.active = active;
+            if (typeof bookingStatus === "number") filterConditions.bookingStatus = bookingStatus;
 
-            // Date filter (assuming bookingDate field exists in schema)
+            // ✅ Exact date match (since bookingDate is a string field)
             if (bookingDate) {
-                const startOfDay = new Date(`${bookingDate}T00:00:00.000Z`);
-                const endOfDay = new Date(`${bookingDate}T23:59:59.999Z`);
-                filterConditions.bookingDate = { $gte: startOfDay, $lte: endOfDay };
+                // Normalize date string to your saved format
+                const normalizedDate = `${bookingDate}T00:00:00.000Z`;
+                filterConditions.bookingDate = normalizedDate;
             }
+
+            console.log("📅 Filter Conditions:", filterConditions);
 
             const options = {
                 page,
                 limit,
                 sort: { bookingDate: -1 }, // latest booking first
                 populate: [
-                    {
-                        path: "business",
-                        select: "_id businessName",
-                    },
-                    {
-                        path: "serviceInfo",
-                        select: "_id name price",
-                        as: "serviceInfo",
-                    },
-                    {
-                        path: "bookingUser",
-                        select: "_id name email",
-                        as: "bookingUser",
-                    },
+                    { path: "business", select: "_id businessName" },
+                    { path: "serviceInfo", select: "_id name price" },
+                    { path: "bookingUser", select: "_id name email" },
                 ],
             };
 
@@ -104,6 +96,8 @@ export class userBookingService {
             throw error;
         }
     }
+
+
 
 
 

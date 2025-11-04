@@ -41,38 +41,48 @@ export class userBookingService {
     static async fetchBookingsWithPagination({
         userId,
         businessId,
+        active, // 0 = pending, 1 = approved, 2 = completed
+        bookingDate,
         page = 1,
         limit = 10,
     }: {
         userId?: string;
         businessId?: string;
+        active?: number;
+        bookingDate?: string;
         page?: number;
         limit?: number;
     }) {
-
-        console.log(userId, "Coming")
         try {
             const filterConditions: any = {};
 
             if (userId) filterConditions.bookingUserId = userId;
             if (businessId) filterConditions.businessId = businessId;
+            if (typeof active === "number") filterConditions.active = active;
+
+            // Date filter (assuming bookingDate field exists in schema)
+            if (bookingDate) {
+                const startOfDay = new Date(`${bookingDate}T00:00:00.000Z`);
+                const endOfDay = new Date(`${bookingDate}T23:59:59.999Z`);
+                filterConditions.bookingDate = { $gte: startOfDay, $lte: endOfDay };
+            }
 
             const options = {
                 page,
                 limit,
-                sort: { createdAt: -1 },
+                sort: { bookingDate: -1 }, // latest booking first
                 populate: [
                     {
                         path: "business",
                         select: "_id businessName",
                     },
                     {
-                        path: "serviceInfo", // assuming your schema field is serviceId
+                        path: "serviceInfo",
                         select: "_id name price",
-                        as: "serviceInfo", // optional: rename in populated result
+                        as: "serviceInfo",
                     },
                     {
-                        path: "bookingUser", // assuming your schema field is bookingUserId
+                        path: "bookingUser",
                         select: "_id name email",
                         as: "bookingUser",
                     },
@@ -94,6 +104,7 @@ export class userBookingService {
             throw error;
         }
     }
+
 
 
     // UPDATE

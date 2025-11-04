@@ -4,6 +4,7 @@ import { handleValidationErrors } from "../../utils/helperUtils";
 import { sendSuccessResponse, sendErrorResponse } from "../../utils/responseUtils";
 import { createBookingSchema, updateBookingSchema } from "../../validations/bookingValidation";
 import mongoose from "mongoose";
+import { formatToUTC } from "../../utils/helperUtils";
 
 export class UserBookingController {
     // CREATE Booking
@@ -31,6 +32,7 @@ export class UserBookingController {
                 businessId: (result.data.businessId),
                 serviceId: (result.data.serviceId),
                 bookingUserId: userId,
+                bookingDate: formatToUTC(result.data.bookingDate) || "",
             };
 
             const booking = await userBookingService.createBooking(payload);
@@ -55,16 +57,18 @@ export class UserBookingController {
 
     // GET All Bookings (Paginated)
     static async getAllBookings(req: Request, res: Response) {
+        const userId = req.userId;
 
-        const userId = req.userId
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
-            const { businessId } = req.query;
+            const { businessId, active, bookingDate } = req.query;
 
             const result = await userBookingService.fetchBookingsWithPagination({
                 userId: userId as string,
                 businessId: businessId as string,
+                active: active !== undefined ? Number(active) : undefined,
+                bookingDate: bookingDate as string,
                 page,
                 limit,
             });
@@ -74,6 +78,7 @@ export class UserBookingController {
             return sendErrorResponse(res, [error.message], 500);
         }
     }
+
 
     // UPDATE Booking
     static async updateBooking(req: Request, res: Response) {

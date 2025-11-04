@@ -136,3 +136,14 @@ export const getCountryCode = (countryName: string): string => {
 
   return foundKey ? countries[foundKey] : "PK"; // default fallback
 };
+export function formatToUTC(dateString: string): string | null {
+  if (!dateString) return null;
+
+  try {
+    const date = new Date(dateString.replace(" ", "T") + "Z");
+    return date.toISOString();
+  } catch (err) {
+    console.error("❌ Invalid date format:", dateString);
+    return null;
+  }
+}

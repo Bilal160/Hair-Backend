@@ -20,7 +20,7 @@ export class userBookingService {
             const booking = await Booking.findById(bookingId).populate([
                 {
                     path: "business",
-                    select: "_id name businessLocation "
+                    select: "_id businessName businessLocation "
                 },
                 {
                     path: "serviceInfo",

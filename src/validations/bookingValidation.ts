@@ -13,4 +13,5 @@ export const updateBookingSchema = z.object({
     bookingDate: z.string().optional(),
     bookingMessage: z.string().optional().nullable(),
     bookingContactNumber: z.string().optional(),
+    bookingStatus: z.number().optional(),
 });

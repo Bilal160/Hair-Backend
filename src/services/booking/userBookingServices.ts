@@ -1,6 +1,7 @@
 import { Booking } from "../../models/bookingModel";
 import { BookingInterfase } from "../../interfaces/bookingInterface";
 import { formatToUTC } from "../../utils/helperUtils";
+import { populate } from "dotenv";
 
 export class userBookingService {
     // CREATE
@@ -19,11 +20,12 @@ export class userBookingService {
             const booking = await Booking.findById(bookingId).populate([
                 {
                     path: "business",
-                    select: "_id name  "
+                    select: "_id name businessLocation "
                 },
                 {
                     path: "serviceInfo",
-                    select: "_id name price"
+                    select: "_id name price",
+                    populate: { path: "servicePhoto", select: "url key" }
                 },
                 {
                     path: "bookingUser",
@@ -75,8 +77,8 @@ export class userBookingService {
                 limit,
                 sort: { bookingDate: -1 }, // latest booking first
                 populate: [
-                    { path: "business", select: "_id businessName" },
-                    { path: "serviceInfo", select: "_id name price" },
+                    { path: "business", select: "_id businessName businessLocation" },
+                    { path: "serviceInfo", select: "_id name price", populate: { path: "servicePhoto", select: "url key" } },
                     { path: "bookingUser", select: "_id name email" },
                 ],
             };

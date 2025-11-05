@@ -24,7 +24,7 @@ export class userBookingService {
                 },
                 {
                     path: "serviceInfo",
-                    select: "_id name price",
+                    select: "_id name price servicePhotoId",
                     populate: { path: "servicePhoto", select: "url key" }
                 },
                 {
@@ -78,7 +78,7 @@ export class userBookingService {
                 sort: { bookingDate: -1 }, // latest booking first
                 populate: [
                     { path: "business", select: "_id businessName businessLocation" },
-                    { path: "serviceInfo", select: "_id name price", populate: { path: "servicePhoto", select: "url key" } },
+                    { path: "serviceInfo", select: "_id name price servicePhotoId", populate: { path: "servicePhoto", select: "url key" } },
                     { path: "bookingUser", select: "_id name email" },
                 ],
             };

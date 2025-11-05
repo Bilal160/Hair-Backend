@@ -20,7 +20,7 @@ export class userBookingService {
             const booking = await Booking.findById(bookingId).populate([
                 {
                     path: "business",
-                    select: "_id businessName businessLocation "
+                    select: "_id businessName phone operatingHours operatingDays businessLocation "
                 },
                 {
                     path: "serviceInfo",
@@ -77,7 +77,7 @@ export class userBookingService {
                 limit,
                 sort: { bookingDate: -1 }, // latest booking first
                 populate: [
-                    { path: "business", select: "_id businessName businessLocation" },
+                    { path: "business", select: "_id businessName phone operatingHours operatingDays businessLocation" },
                     { path: "serviceInfo", select: "_id name price servicePhotoId", populate: { path: "servicePhoto", select: "url key" } },
                     { path: "bookingUser", select: "_id name email" },
                 ],

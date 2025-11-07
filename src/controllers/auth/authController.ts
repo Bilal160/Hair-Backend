@@ -21,6 +21,7 @@ import { accountMail } from "../../utils/emailUtils";
 import { handlePhotoUpload } from "../../utils/imagesUtils";
 import { Types } from "mongoose";
 import { ImagesService } from "../../services/imagesService";
+import { createStripeCustomer } from "../../utils/stripeInfoUtils";
 
 export class UserAuthController {
   constructor(private readonly userService: IUser) { }
@@ -47,12 +48,18 @@ export class UserAuthController {
         );
       }
 
+      const stripeCustomer = await createStripeCustomer({
+        email: result.data.email,
+        name: result.data.name,
+      });
+
 
       console.log(result?.data, "result?.data");
       const user = await AuthService.registerUser({
         ...result?.data,
         roleType: 0,
-      } as IUser)
+        stripeCustomerId: stripeCustomer?.id || "",
+      } as IUser);
 
 
 
@@ -105,85 +112,85 @@ export class UserAuthController {
       return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
     }
   }
-static async UpdateUser(req: Request, res: Response) {
-  const userId = req.userId;
+  static async UpdateUser(req: Request, res: Response) {
+    const userId = req.userId;
 
-  const formattedData = await AuthService.formattedData({
-    ...req.body,
-  });
+    const formattedData = await AuthService.formattedData({
+      ...req.body,
+    });
 
-  console.log(formattedData, "formattedData");
-  try {
-    let profilePhotoId: string | null = null;
+    console.log(formattedData, "formattedData");
+    try {
+      let profilePhotoId: string | null = null;
 
-    if (formattedData.removePhoto == "true") {
-      const existingPhoto = await AuthService.getExistingPhoto(userId);
-      console.log(existingPhoto, "existingPhoto");
+      if (formattedData.removePhoto == "true") {
+        const existingPhoto = await AuthService.getExistingPhoto(userId);
+        console.log(existingPhoto, "existingPhoto");
 
-      const photoId = existingPhoto?.profilePhotoId;
-      let photoKey: string | undefined = undefined;
-      if (photoId) {
-        const photoDoc = await ImagesService.getPhotoById(photoId as any);
-        photoKey = photoDoc?.key;
+        const photoId = existingPhoto?.profilePhotoId;
+        let photoKey: string | undefined = undefined;
+        if (photoId) {
+          const photoDoc = await ImagesService.getPhotoById(photoId as any);
+          photoKey = photoDoc?.key;
+        }
+
+        if (photoKey && photoId) {
+          const deletedPhoto = await ImagesService.deletePhotoById(photoId as any, photoKey);
+          console.log(deletedPhoto, "deletedPhoto");
+          // Set profilePhotoId to null after deletion
+          profilePhotoId = null;
+        }
       }
 
-      if (photoKey && photoId) {
-        const deletedPhoto = await ImagesService.deletePhotoById(photoId as any, photoKey);
-        console.log(deletedPhoto, "deletedPhoto");
-        // Set profilePhotoId to null after deletion
-        profilePhotoId = null;
+      const profilePhotos = (req.files as any)?.profilePhoto;
+
+      if (profilePhotos && profilePhotos.length > 0) {
+        const existingPhoto = await AuthService.getExistingPhoto(userId);
+        const photoId = existingPhoto?.profilePhotoId;
+        let photoKey: string | undefined = undefined;
+        if (photoId) {
+          const photoDoc = await ImagesService.getPhotoById(photoId as any);
+          photoKey = photoDoc?.key;
+        }
+
+        if (photoKey && photoId) {
+          const deletedPhoto = await ImagesService.deletePhotoById(photoId as any, photoKey);
+          console.log(deletedPhoto, "deletedPhoto");
+        }
+
+        const uploadedId = await handlePhotoUpload(
+          Array.isArray(profilePhotos) ? profilePhotos : [profilePhotos],
+          "images"
+        );
+        if (uploadedId && Array.isArray(uploadedId)) {
+          profilePhotoId = uploadedId[0];
+        } else if (uploadedId) {
+          profilePhotoId = uploadedId;
+        }
       }
-    }
 
-    const profilePhotos = (req.files as any)?.profilePhoto;
+      const updatedData = {
+        name: formattedData.name,
+        email: formattedData.email,
+        phone: formattedData.phoneNumber,
+        userId,
+        profilePhotoId: profilePhotoId
+          ? new (require("mongoose").Types.ObjectId)(profilePhotoId)
+          : null, // will be null if deleted
+      };
 
-    if (profilePhotos && profilePhotos.length > 0) {
-      const existingPhoto = await AuthService.getExistingPhoto(userId);
-      const photoId = existingPhoto?.profilePhotoId;
-      let photoKey: string | undefined = undefined;
-      if (photoId) {
-        const photoDoc = await ImagesService.getPhotoById(photoId as any);
-        photoKey = photoDoc?.key;
-      }
-
-      if (photoKey && photoId) {
-        const deletedPhoto = await ImagesService.deletePhotoById(photoId as any, photoKey);
-        console.log(deletedPhoto, "deletedPhoto");
-      }
-
-      const uploadedId = await handlePhotoUpload(
-        Array.isArray(profilePhotos) ? profilePhotos : [profilePhotos],
-        "images"
+      const user = await AuthService.updateUser(updatedData);
+      return sendSuccessResponse(
+        res,
+        ["User updated successfully"],
+        { user: user },
+        200
       );
-      if (uploadedId && Array.isArray(uploadedId)) {
-        profilePhotoId = uploadedId[0];
-      } else if (uploadedId) {
-        profilePhotoId = uploadedId;
-      }
+
+    } catch (error) {
+      return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
     }
-
-    const updatedData = {
-      name: formattedData.name,
-      email: formattedData.email,
-      phone: formattedData.phoneNumber,
-      userId,
-      profilePhotoId: profilePhotoId
-        ? new (require("mongoose").Types.ObjectId)(profilePhotoId)
-        : null, // will be null if deleted
-    };
-
-    const user = await AuthService.updateUser(updatedData);
-    return sendSuccessResponse(
-      res,
-      ["User updated successfully"],
-      { user: user },
-      200
-    );
-
-  } catch (error) {
-    return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
   }
-}
 
   static async ChangePassword(req: Request, res: Response) {
     const userId = req.userId;
@@ -268,30 +275,30 @@ static async UpdateUser(req: Request, res: Response) {
     }
   }
 
-static async forgotPassword(req: Request, res: Response) {
-  const { email } = req.body;
+  static async forgotPassword(req: Request, res: Response) {
+    const { email } = req.body;
 
-  // ✅ Validate request body
-  const result = await forgotPasswordSchema.safeParse(req.body);
-  if (!result.success) {
-    const errorMessage = handleValidationErrors(result.error);
-    return sendErrorResponse(res, [`Validation Error: ${errorMessage}`], 400);
-  }
-
-  try {
-    // ✅ Check if user exists
-    const userInfo = await AuthService.userByEmail(email);
-    if (!userInfo) {
-      return sendErrorResponse(res, ["User not found"], 404);
+    // ✅ Validate request body
+    const result = await forgotPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      const errorMessage = handleValidationErrors(result.error);
+      return sendErrorResponse(res, [`Validation Error: ${errorMessage}`], 400);
     }
 
-    // ✅ Generate verification token
-    const verificationToken = await generateToken().toString();
-    const expireAt = new Date(Date.now() + 30 * 60000); // 30 min expiry
+    try {
+      // ✅ Check if user exists
+      const userInfo = await AuthService.userByEmail(email);
+      if (!userInfo) {
+        return sendErrorResponse(res, ["User not found"], 404);
+      }
 
-    // ✅ Compose email subject & text for OTP
-    const subject = "Password Reset Token - Crownity";
-    const text = `
+      // ✅ Generate verification token
+      const verificationToken = await generateToken().toString();
+      const expireAt = new Date(Date.now() + 30 * 60000); // 30 min expiry
+
+      // ✅ Compose email subject & text for OTP
+      const subject = "Password Reset Token - Crownity";
+      const text = `
       Hi ${userInfo.name},
       <br/><br/>
       We received a request to reset your password.
@@ -308,26 +315,26 @@ static async forgotPassword(req: Request, res: Response) {
       <b>Crownity Team</b>
     `;
 
-    // ✅ Send the email
-    await accountMail(email, subject, text);
+      // ✅ Send the email
+      await accountMail(email, subject, text);
 
-    // ✅ Save token in DB
-    await AuthService.saveToken(email, verificationToken, expireAt);
+      // ✅ Save token in DB
+      await AuthService.saveToken(email, verificationToken, expireAt);
 
-    return sendSuccessResponse(
-      res,
-      ["Password reset email sent successfully"],
-      {},
-      200
-    );
-  } catch (error: any) {
-    console.error("Forgot Password Error:", error);
-    if (error?.message === "User not found") {
-      return sendErrorResponse(res, ["User not found"], 404);
+      return sendSuccessResponse(
+        res,
+        ["Password reset email sent successfully"],
+        {},
+        200
+      );
+    } catch (error: any) {
+      console.error("Forgot Password Error:", error);
+      if (error?.message === "User not found") {
+        return sendErrorResponse(res, ["User not found"], 404);
+      }
+      return sendErrorResponse(res, [`Internal Server Error: ${error.message}`], 500);
     }
-    return sendErrorResponse(res, [`Internal Server Error: ${error.message}`], 500);
   }
-}
 
   static async sendVerificationEmail(req: Request, res: Response) {
     const { email } = req.body;

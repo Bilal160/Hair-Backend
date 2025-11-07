@@ -414,4 +414,30 @@ export class BusinessAuthService {
       throw new Error("Failed to get existing photo");
     }
   }
+
+  static async setupConnectAccount(payload: { userId: string, stripeAccountId: string, stripeOnboardingUrl: string }) {
+    try {
+      const { userId, stripeAccountId, stripeOnboardingUrl } = payload;
+      const user = await User.findById(userId);
+      if (!user) throw new Error("User not found");
+      user.stripeAccountId = stripeAccountId;
+      user.stripeOnboardingUrl = stripeOnboardingUrl;
+      await user.save();
+
+      const {
+        password: _,
+        createdAt,
+        updatedAt,
+        __v,
+        ...userSafe
+      } = user.toObject();
+
+      return userSafe;
+    } catch (error) {
+      throw new Error("Failed to setup connect account");
+    }
+  }
+
+
+
 }

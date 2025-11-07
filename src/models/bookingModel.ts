@@ -69,6 +69,14 @@ bookingSchema.virtual("bookingUser", {
     justOne: true,
 });
 
+bookingSchema.virtual("serviceProvider", {
+    ref: "User",
+    localField: "userId",
+    foreignField: "_id",
+    justOne: true,
+});
+
+
 bookingSchema.virtual("serviceInfo", {
     ref: "Service",
     localField: "serviceId",

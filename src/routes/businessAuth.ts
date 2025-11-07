@@ -7,9 +7,9 @@ const router = express.Router();
 
 const asyncHandler =
   (fn: Function) =>
-  (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+    (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      Promise.resolve(fn(req, res, next)).catch(next);
+    };
 
 router.post(
   "/signup",
@@ -45,5 +45,10 @@ router.delete(
   "/logout",
   userAuthMiddleware,
   asyncHandler(BusinessAuthController.logoutUser)
+);
+router.post(
+  "/setupConnectAccount",
+  userAuthMiddleware,
+  asyncHandler(BusinessAuthController.setupConnectAccount)
 );
 export = router;

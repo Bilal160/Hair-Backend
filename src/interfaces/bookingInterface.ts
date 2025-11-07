@@ -8,5 +8,10 @@ export interface BookingInterfase extends Document {
     bookingMessage?: string | null
     bookingContactNumber?: string
     bookingStatus?: number
+    serviceInfo?: any;
+    business?: any;
+    serviceProvider?: any;
+    bookingUser?: any;
+
 
 }

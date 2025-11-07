@@ -25,6 +25,11 @@ router.delete(
     asyncHandler(UserBookingController.deleteBooking)
 );
 
+router.post(
+    "/:id/processPayment",
+    userAuthMiddleware,
+    asyncHandler(UserBookingController.processPaymentForBooking)
+);
 
 
 

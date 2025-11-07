@@ -33,9 +33,39 @@ export const createStripeCustomer = async ({
 };
 
 
+// export const createStripeConnectAccount = async (
+//   { email, country = "PK" }: CreateConnectAccountParams
+// ): Promise<CreateConnectAccountResponse> => {
+//   try {
+//     const account = await stripeClient.accounts.create({
+//       type: "express",
+//       country,
+//       email,
+//       capabilities: {
+//         card_payments: { requested: true },
+//         transfers: { requested: true },
+//       },
+//     });
+
+//     // Create onboarding link
+//     const accountLink = await stripeClient.accountLinks.create({
+//       account: account.id,
+//       refresh_url: "https://yourdomain.com/retry-onboarding",
+//       return_url: "https://yourdomain.com/onboarding-success",
+//       type: "account_onboarding",
+//     });
+
+//     return { account, accountLink };
+//   } catch (error: any) {
+//     console.error("Error creating Stripe Connect account:", error);
+//     throw new Error(error?.message || "Stripe Connect account creation failed");
+//   }
+// };
+
+
 export const createStripeConnectAccount = async (
   { email, country = "PK" }: CreateConnectAccountParams
-): Promise<CreateConnectAccountResponse> => {
+): Promise<{ accountId: string; accountOnboardingUrl: string }> => {
   try {
     const account = await stripeClient.accounts.create({
       type: "express",
@@ -47,15 +77,17 @@ export const createStripeConnectAccount = async (
       },
     });
 
-    // Create onboarding link
     const accountLink = await stripeClient.accountLinks.create({
       account: account.id,
-      refresh_url: "https://yourdomain.com/retry-onboarding",
-      return_url: "https://yourdomain.com/onboarding-success",
+      refresh_url: "https://hair-salon-frontend-rouge.vercel.app/retry-onboarding",
+      return_url: "https://hair-salon-frontend-rouge.vercel.app/onboarding-success",
       type: "account_onboarding",
     });
 
-    return { account, accountLink };
+    return {
+      accountId: account.id,
+      accountOnboardingUrl: accountLink.url,
+    };
   } catch (error: any) {
     console.error("Error creating Stripe Connect account:", error);
     throw new Error(error?.message || "Stripe Connect account creation failed");

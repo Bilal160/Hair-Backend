@@ -112,4 +112,17 @@ export class UserBookingController {
             return sendErrorResponse(res, [error.message], 500);
         }
     }
+
+    // PROCESS PAYMENT FOR BOOKING
+    static async processPaymentForBooking(req: Request, res: Response) {
+        const userId = req.userId;
+        try {
+            const { id } = req.params;
+            const { paymentMethodId } = req.body;
+            const payment = await userBookingService.processPaymentForBooking(id, paymentMethodId);
+            return sendSuccessResponse(res, ["Payment processed successfully"], { payment });
+        } catch (error: any) {
+            return sendErrorResponse(res, [error.message], 500);
+        }
+    }
 }

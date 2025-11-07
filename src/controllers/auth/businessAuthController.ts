@@ -59,12 +59,14 @@ export class BusinessAuthController {
       });
 
 
-      // const { account, accountLink } = await createStripeConnectAccount({
-      //   email: result.data.email,
-      //   country: getCountryCode(result.data?.businessInfo.businessLocation.state) // dynamic country
-      // });
+      const state = result.data?.businessInfo.businessLocation.state;
+      const country = getCountryCode(state ?? "");
+      const { accountId, accountOnboardingUrl } = await createStripeConnectAccount({
+        email: result.data.email,
+        country: "CA" // use dynamic country if available, fallback to "CA"
+      });
 
-
+      console.log(accountId, accountOnboardingUrl, "accountId and accountOnboardingUrl");
 
 
       const userExists = await BusinessAuthService.userExists(
@@ -84,6 +86,8 @@ export class BusinessAuthController {
         email: result.data.email,
         password: result.data.password,
         phone: result.data.phone,
+        stripeAccountId: accountId,
+        stripeOnboardingUrl: accountOnboardingUrl,
         roleType: 1,
         stripeCustomerId: stripeCustomer?.id || "",
       } as IUser);
@@ -159,6 +163,8 @@ export class BusinessAuthController {
       const businessProfile =
         await BusinessProfileService.createBusinessProfile({
           userId: user?.user?._id,
+          stripeAccountId: accountId,
+          stripeOnboardingUrl: accountOnboardingUrl,
           ...result.data.businessInfo, // assuming businessInfo object contains business fields
           businessPhotosIds,
           businessNICPhotoIds,
@@ -654,6 +660,32 @@ export class BusinessAuthController {
         [`Internal Server Error: ${error.message || error}`],
         500
       );
+    }
+  }
+
+  static async setupConnectAccount(req: Request, res: Response) {
+
+    const userId = req.userId;
+    try {
+      const user = await BusinessAuthService.userById(userId);
+      if (!user) {
+        return sendErrorResponse(res, ["User not found"], 404);
+      }
+
+      const { accountId, accountOnboardingUrl } = await createStripeConnectAccount({
+        email: user.email || "",
+        country: "CA" // use dynamic country if available, fallback to "CA"
+      });
+
+      const updatedUser = await BusinessAuthService.setupConnectAccount({
+        userId,
+        stripeAccountId: accountId,
+        stripeOnboardingUrl: accountOnboardingUrl,
+      });
+
+      return sendSuccessResponse(res, ["Connect account setup successfully"], { data: updatedUser }, 200);
+    } catch (error) {
+      return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
     }
   }
 }

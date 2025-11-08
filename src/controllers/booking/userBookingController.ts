@@ -120,7 +120,7 @@ export class UserBookingController {
         const userId = req.userId;
         try {
             const { id } = req.params;
-            const { paymentMethodId, rating, comment } = req.body;
+            const { stripePaymentMethodId, rating, comment } = req.body;
 
             if (!rating || !comment) {
                 return sendErrorResponse(res, ["Rating and comment are required"], 400);
@@ -142,7 +142,7 @@ export class UserBookingController {
 
             const review = await ReviewsService.createReview(reviewData as IReview);
 
-            const payment = await userBookingService.processPaymentForBooking(id, paymentMethodId);
+            const payment = await userBookingService.processPaymentForBooking(id, stripePaymentMethodId);
             return sendSuccessResponse(res, ["Payment Booking Completed Successfully"], { payment, review });
         } catch (error: any) {
             return sendErrorResponse(res, [error.message], 500);

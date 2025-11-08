@@ -5,6 +5,8 @@ import { sendSuccessResponse, sendErrorResponse } from "../../utils/responseUtil
 import { createBookingSchema, updateBookingSchema } from "../../validations/bookingValidation";
 import mongoose from "mongoose";
 import { formatToUTC } from "../../utils/helperUtils";
+import { ReviewsService } from "../../services/review/reviewServices";
+import { IReview } from "../../interfaces/reviewInterface";
 
 export class UserBookingController {
     // CREATE Booking
@@ -118,9 +120,30 @@ export class UserBookingController {
         const userId = req.userId;
         try {
             const { id } = req.params;
-            const { paymentMethodId } = req.body;
+            const { paymentMethodId, rating, comment } = req.body;
+
+            if (!rating || !comment) {
+                return sendErrorResponse(res, ["Rating and comment are required"], 400);
+            }
+
+            const booking = await userBookingService.getBookingById(id);
+            if (!booking) {
+                return sendErrorResponse(res, ["Booking not found"], 404);
+            }
+
+            console.log(booking, "Booking Payment Processed")
+
+            const reviewData = {
+                userId,
+                businessId: booking.businessId,
+                rating,
+                comment,
+            }
+
+            const review = await ReviewsService.createReview(reviewData as IReview);
+
             const payment = await userBookingService.processPaymentForBooking(id, paymentMethodId);
-            return sendSuccessResponse(res, ["Payment processed successfully"], { payment });
+            return sendSuccessResponse(res, ["Payment Booking Completed Successfully"], { payment, review });
         } catch (error: any) {
             return sendErrorResponse(res, [error.message], 500);
         }

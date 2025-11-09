@@ -10,6 +10,8 @@ import userServices from "./userServices";
 import userBooking from "./userBooking"
 import review from "./reviews";
 import businessBooking from "./businessBooking";
+import { asyncHandler } from "../utils/helperUtils";
+import { BusinessAuthController } from "../controllers/auth/businessAuthController";
 
 // Import route modules
 
@@ -23,6 +25,11 @@ export const routes = () => {
   };
 
   router.use(cors(options));
+  router.post(
+    "/stripe/webhook",
+    express.raw({ type: "application/json" }),
+    asyncHandler(BusinessAuthController.handleStripeWebhook)
+  );
 
   router.use(bodyParser.json());
   router.use(bodyParser.urlencoded({ extended: true }));
@@ -40,6 +47,7 @@ export const routes = () => {
   router.use("/user/booking/", userBooking);
   router.use("/business/booking/", businessBooking);
   router.use("/user/review", review);
+
 
   return router;
 };

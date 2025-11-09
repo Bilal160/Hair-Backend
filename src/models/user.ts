@@ -58,6 +58,32 @@ const user: Schema = new Schema(
       required: false,
       default: null,
     },
+    stripeAccountVerified: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    stripePayoutEnabled: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    stripeDetailEnabled: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    stripeChargesEnabled: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    stripeConnectedAccountUrl:
+    {
+      type: String,
+      required: false,
+      default: null,
+    },
 
   },
   {

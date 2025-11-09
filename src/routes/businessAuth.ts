@@ -64,4 +64,10 @@ router.get(
   userAuthMiddleware,
   asyncHandler(BusinessAuthController.regenerateConnectLink)
 );
+
+router.post(
+  "/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  asyncHandler(BusinessAuthController.handleStripeWebhook)
+);
 export = router;

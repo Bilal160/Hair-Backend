@@ -15,6 +15,12 @@ export interface IUser extends Document {
   stripeCustomerId?: string;
   stripeAccountId?: string;
   stripeOnboardingUrl?: string;
+  stripeAccountVerified?: boolean;
+  stripePayoutEnabled?: boolean;
+  stripeDetailEnabled?: boolean;
+  stripeChargesEnabled?: boolean;
+  stripeConnectedAccountUrl?: string
+
   createdAt?: Date;
   updatedAt?: Date;
 }

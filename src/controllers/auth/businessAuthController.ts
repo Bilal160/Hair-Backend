@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { IUser } from "../../interfaces/userInterface";
+import { stripeClient } from "../../utils/stripeInfoUtils";
+import Stripe from "stripe";
 import {
   changePasswordSchema,
   forgotPasswordSchema,
@@ -757,6 +759,69 @@ export class BusinessAuthController {
       );
     } catch (error: any) {
       return sendErrorResponse(res, [`Failed to regenerate onboarding link: ${error.message}`], 500);
+    }
+  }
+
+
+  static async handleStripeWebhook(req: Request, res: Response) {
+    const sig = req.headers["stripe-signature"];
+    let event: Stripe.Event;
+
+    try {
+      // ⚠️ Important: req.body must be raw buffer
+      event = stripeClient.webhooks.constructEvent(
+        req.body,
+        sig as string,
+        process.env.STRIPE_WEBHOOK_SECRET as string
+      );
+    } catch (err: any) {
+      console.error("❌ Webhook signature verification failed:", err.message);
+      return sendErrorResponse(res, [`Webhook Error: ${err.message}`], 400);
+    }
+
+    try {
+      switch (event.type) {
+
+        case "account.updated": {
+          const account = event.data.object as Stripe.Account;
+          console.log("💳 Stripe account updated:", account.id);
+
+          // Call the service to update user verification status
+          const updatedUser = await BusinessAuthService.updateVerificationStatus({
+            stripeAccountId: account.id,
+          });
+
+          return sendSuccessResponse(
+            res,
+            ["Stripe account verification status updated successfully"],
+            { data: updatedUser },
+            200
+          );
+        }
+
+        case "account.external_account.created": {
+          const bank = event.data.object as Stripe.BankAccount;
+          console.log("🏦 Bank account linked:", bank.id);
+          return sendSuccessResponse(
+            res,
+            ["Bank account linked successfully"],
+            { data: { bankId: bank.id } },
+            200
+          );
+        }
+
+        default:
+          console.log(`⚠️ Unhandled Stripe event type: ${event.type}`);
+          return sendSuccessResponse(
+            res,
+            [`Unhandled event type: ${event.type}`],
+            {},
+            200
+          );
+      }
+    } catch (error: any) {
+      console.error("Webhook processing error:", error);
+      return sendErrorResponse(res, [`Internal Server Error: ${error.message || error}`], 500);
     }
   }
 

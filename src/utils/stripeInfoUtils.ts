@@ -97,29 +97,47 @@ export const createStripeConnectAccount = async (
 
 // Check Account Status
 
+// export const checkStripeAccountStatus = async (accountId: string) => {
+//   try {
+//     const account = await stripeClient.accounts.retrieve(accountId);
+
+//     // You can inspect fields like these:
+//     const detailsSubmitted = account.details_submitted; // boolean
+//     const payoutsEnabled = account.payouts_enabled; // boolean
+//     const chargesEnabled = account.charges_enabled; // boolean
+//     const requirements = account.requirements; // verification details
+
+//     const verificationStatus = {
+//       verified:
+//         account.details_submitted &&
+//         account.charges_enabled &&
+//         account.payouts_enabled,
+//       details_submitted: account.details_submitted,
+//       payouts_enabled: account.payouts_enabled,
+//       charges_enabled: account.charges_enabled,
+//       currently_due: account.requirements?.currently_due || [],
+//       eventually_due: account.requirements?.eventually_due || [],
+//     };
+
+//     return verificationStatus;
+//   } catch (error: any) {
+//     console.error("Error checking Stripe account status:", error);
+//     throw new Error(error?.message || "Failed to check account status");
+//   }
+// };
+
 export const checkStripeAccountStatus = async (accountId: string) => {
   try {
     const account = await stripeClient.accounts.retrieve(accountId);
 
-    // You can inspect fields like these:
-    const detailsSubmitted = account.details_submitted; // boolean
-    const payoutsEnabled = account.payouts_enabled; // boolean
-    const chargesEnabled = account.charges_enabled; // boolean
-    const requirements = account.requirements; // verification details
-
-    const verificationStatus = {
-      verified:
-        account.details_submitted &&
-        account.charges_enabled &&
-        account.payouts_enabled,
-      details_submitted: account.details_submitted,
-      payouts_enabled: account.payouts_enabled,
-      charges_enabled: account.charges_enabled,
+    return {
+      stripeAccountVerified: account.details_submitted && account.charges_enabled && account.payouts_enabled,
+      stripeDetailEnabled: account.details_submitted,
+      stripePayoutEnabled: account.payouts_enabled,
+      stripeChargesEnabled: account.charges_enabled,
       currently_due: account.requirements?.currently_due || [],
       eventually_due: account.requirements?.eventually_due || [],
     };
-
-    return verificationStatus;
   } catch (error: any) {
     console.error("Error checking Stripe account status:", error);
     throw new Error(error?.message || "Failed to check account status");

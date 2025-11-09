@@ -7,6 +7,7 @@ import {
 } from "../../utils/jwtUtils";
 import { PasswordReset } from "../../models/passwordReset";
 import { EmailVerification } from "../../models/emailVerificationsTokens";
+import { checkStripeAccountStatus } from "../../utils/stripeInfoUtils";
 
 export class BusinessAuthService {
   constructor(private readonly BusinessAuthService: BusinessAuthService) { }
@@ -435,6 +436,36 @@ export class BusinessAuthService {
       return userSafe;
     } catch (error) {
       throw new Error("Failed to setup connect account");
+    }
+  }
+
+
+  static async updateVerificationStatus(payload: { stripeAccountId: string }) {
+    try {
+      const { stripeAccountId } = payload;
+
+      // 1️⃣ Find user by stripeAccountId
+      const user = await User.findOne({ stripeAccountId });
+      if (!user) throw new Error("User not found");
+
+      // 2️⃣ Get latest verification status from Stripe
+      const verification = await checkStripeAccountStatus(stripeAccountId);
+
+      // 3️⃣ Update user fields
+      user.stripeAccountVerified = verification.stripeAccountVerified;
+      user.stripePayoutEnabled = verification.stripePayoutEnabled;
+      user.stripeDetailEnabled = verification.stripeDetailEnabled;
+      user.stripeChargesEnabled = verification.stripeChargesEnabled;
+
+      await user.save();
+
+      // 4️⃣ Return sanitized user object
+      const { password, __v, createdAt, updatedAt, ...userSafe } = user.toObject();
+      return userSafe;
+
+    } catch (error: any) {
+      console.error("Failed to update Stripe verification status:", error);
+      throw new Error(error?.message || "Failed to update verification status");
     }
   }
 

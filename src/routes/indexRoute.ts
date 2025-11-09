@@ -25,11 +25,6 @@ export const routes = () => {
   };
 
   router.use(cors(options));
-  router.post(
-    "/stripe/webhook",
-    express.raw({ type: "application/json" }),
-    asyncHandler(BusinessAuthController.handleStripeWebhook)
-  );
 
   router.use(bodyParser.json());
   router.use(bodyParser.urlencoded({ extended: true }));

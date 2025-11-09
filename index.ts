@@ -1,4 +1,5 @@
 import * as dotenv from "dotenv";
+
 dotenv.config();
 
 import { mongoConnect } from "./src/config/dbConfig";
@@ -8,8 +9,11 @@ import cors from "cors";
 
 import { routes } from "./src/routes/indexRoute";
 import { sendErrorResponse } from "./src/utils/responseUtils";
+import { asyncHandler } from "./src/utils/helperUtils";
+import { BusinessAuthController } from "./src/controllers/auth/businessAuthController";
 
 const app = express();
+let router = express.Router();
 
 app.use(
   cors({
@@ -20,6 +24,12 @@ app.use(
 );
 
 const server = createServer(app);
+router.post(
+  "/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  asyncHandler(BusinessAuthController.handleStripeWebhook)
+);
+
 
 app.use("/api", routes());
 

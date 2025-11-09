@@ -24,11 +24,11 @@ app.use(
 );
 
 const server = createServer(app);
-router.post(
-  "/stripe/webhook",
-  express.raw({ type: "application/json" }),
-  asyncHandler(BusinessAuthController.handleStripeWebhook)
-);
+// router.post(
+//   "/stripe/webhook",
+//   express.raw({ type: "application/json" }),
+//   asyncHandler(BusinessAuthController.handleStripeWebhook)
+// );
 
 
 app.use("/api", routes());

@@ -23,7 +23,11 @@ export const routes = () => {
   const options: cors.CorsOptions = {
     origin: allowedOrigins,
   };
-
+  router.post(
+    "/stripe/webhook",
+    express.raw({ type: "application/json" }),
+    asyncHandler(BusinessAuthController.handleStripeWebhook)
+  );
   router.use(cors(options));
 
   router.use(bodyParser.json());

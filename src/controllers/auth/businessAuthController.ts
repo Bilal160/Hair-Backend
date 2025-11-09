@@ -705,17 +705,12 @@ export class BusinessAuthController {
 
       // ✅ If user already has a Stripe account, check its verification status
       if (user.stripeAccountId) {
-        const status = await checkStripeAccountStatus(user.stripeAccountId);
+        const status = await BusinessAuthService.updateStatus(userId);
 
         return sendSuccessResponse(
           res,
           ["Stripe account status retrieved successfully"],
-          {
-            data: {
-              stripeAccountId: user.stripeAccountId,
-              verificationStatus: status,
-            },
-          },
+          status,
           200
         );
       }

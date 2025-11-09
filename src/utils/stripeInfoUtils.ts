@@ -79,8 +79,8 @@ export const createStripeConnectAccount = async (
 
     const accountLink = await stripeClient.accountLinks.create({
       account: account.id,
-      refresh_url: "https://hair-salon-frontend-rouge.vercel.app/retry-onboarding",
-      return_url: "https://hair-salon-frontend-rouge.vercel.app/onboarding-success",
+      refresh_url: "https://hair-salon-frontend-rouge.vercel.app/business/connectAccountInfo",
+      return_url: "https://hair-salon-frontend-rouge.vercel.app/business/connectAccountInfo",
       type: "account_onboarding",
     });
 
@@ -149,8 +149,8 @@ export const checkStripeAccountStatus = async (accountId: string) => {
 
 export const regenerateStripeOnboardingLink = async ({
   accountId,
-  refreshUrl = "https://hair-salon-frontend-rouge.vercel.app/retry-onboarding",
-  returnUrl = "https://hair-salon-frontend-rouge.vercel.app/onboarding-success",
+  refreshUrl = "https://hair-salon-frontend-rouge.vercel.app//business/connectAccountInfo",
+  returnUrl = "https://hair-salon-frontend-rouge.vercel.app//business/connectAccountInfo",
 }: {
   accountId: string;
   refreshUrl?: string;

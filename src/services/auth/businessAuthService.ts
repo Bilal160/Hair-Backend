@@ -470,5 +470,62 @@ export class BusinessAuthService {
   }
 
 
+  static async updateStatus(id: string) {
+    try {
+
+      console.log(id)
+
+      // 1️⃣ Find user by ID
+      const user = await User.findById(id);
+      if (!user) throw new Error("User not found");
+
+      if (!user.stripeAccountId) throw new Error("User does not have a Stripe account");
+
+      // 2️⃣ Get latest verification status from Stripe
+      const verification = await checkStripeAccountStatus(user.stripeAccountId);
+      // verification should return an object like:
+      // {
+      //   stripeAccountVerified: boolean,
+      //   stripePayoutEnabled: boolean,
+      //   stripeDetailEnabled: boolean,
+      //   stripeChargesEnabled: boolean,
+      //   currently_due: string[],
+      //   eventually_due: string[]
+      // }
+
+      // 3️⃣ Update user fields
+      user.stripeAccountVerified = verification.stripeAccountVerified;
+      user.stripePayoutEnabled = verification.stripePayoutEnabled;
+      user.stripeDetailEnabled = verification.stripeDetailEnabled;
+      user.stripeChargesEnabled = verification.stripeChargesEnabled;
+
+      await user.save();
+
+      // 4️⃣ Prepare response
+      const verificationStatus = {
+        stripeAccountVerified: verification.stripeAccountVerified,
+        stripePayoutEnabled: verification.stripePayoutEnabled,
+        stripeDetailEnabled: verification.stripeDetailEnabled,
+        stripeChargesEnabled: verification.stripeChargesEnabled,
+        currently_due: verification.currently_due || [],
+        eventually_due: verification.eventually_due || [],
+      };
+
+      return {
+
+        data: {
+          stripeAccountId: user.stripeAccountId,
+          verificationStatus,
+        },
+
+      };
+    } catch (error: any) {
+      console.error("Failed to update Stripe verification status:", error);
+      throw new Error(error?.message || "Failed to update verification status");
+    }
+  }
+
+
+
 
 }

@@ -51,4 +51,17 @@ router.post(
   userAuthMiddleware,
   asyncHandler(BusinessAuthController.setupConnectAccount)
 );
+
+
+router.get(
+  "/checkAccountStatus",
+  userAuthMiddleware,
+  asyncHandler(BusinessAuthController.checkConnectedAccountStatus)
+);
+
+router.get(
+  "/regenerateLink",
+  userAuthMiddleware,
+  asyncHandler(BusinessAuthController.regenerateConnectLink)
+);
 export = router;

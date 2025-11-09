@@ -28,7 +28,7 @@ import { handlePhotoUpload } from "../../utils/imagesUtils";
 import { Types } from "mongoose";
 import { ImagesService } from "../../services/imagesService";
 import { signUpBusinessUser } from "../../validations/signUpBusinessValidation";
-import { createStripeConnectAccount, createStripeCustomer } from "../../utils/stripeInfoUtils";
+import { checkStripeAccountStatus, createStripeConnectAccount, createStripeCustomer, regenerateStripeOnboardingLink } from "../../utils/stripeInfoUtils";
 import { PaymentService } from "../../services/payment/paymentService";
 
 export class BusinessAuthController {
@@ -53,6 +53,18 @@ export class BusinessAuthController {
         );
       }
 
+      const userExists = await BusinessAuthService.userExists(
+        result.data.email
+      );
+      if (userExists) {
+        return sendErrorResponse(
+          res,
+          [`Email already registered try with different email`],
+          400
+        );
+      }
+
+
       const stripeCustomer = await createStripeCustomer({
         email: result.data.email,
         name: result.data.name,
@@ -69,16 +81,6 @@ export class BusinessAuthController {
       console.log(accountId, accountOnboardingUrl, "accountId and accountOnboardingUrl");
 
 
-      const userExists = await BusinessAuthService.userExists(
-        result.data.email
-      );
-      if (userExists) {
-        return sendErrorResponse(
-          res,
-          [`Email already registered try with different email`],
-          400
-        );
-      }
 
       // 1. Register user (only user fields)
       const user = await BusinessAuthService.registerUser({
@@ -688,4 +690,74 @@ export class BusinessAuthController {
       return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
     }
   }
+
+
+  static async checkConnectedAccountStatus(req: Request, res: Response) {
+    const userId = req.userId;
+
+    try {
+      const user = await BusinessAuthService.userById(userId);
+      if (!user) {
+        return sendErrorResponse(res, ["User not found"], 404);
+      }
+
+      // ✅ If user already has a Stripe account, check its verification status
+      if (user.stripeAccountId) {
+        const status = await checkStripeAccountStatus(user.stripeAccountId);
+
+        return sendSuccessResponse(
+          res,
+          ["Stripe account status retrieved successfully"],
+          {
+            data: {
+              stripeAccountId: user.stripeAccountId,
+              verificationStatus: status,
+            },
+          },
+          200
+        );
+      }
+
+      // ✅ Otherwise, create a new account and onboarding link
+
+    } catch (error: any) {
+      console.error("Stripe Connect Setup Error:", error);
+      return sendErrorResponse(res, [`Internal Server Error: ${error.message}`], 500);
+    }
+  }
+
+
+
+
+  static async regenerateConnectLink(req: Request, res: Response) {
+    const userId = req.userId;
+
+    try {
+      const user = await BusinessAuthService.userById(userId);
+      if (!user || !user.stripeAccountId) {
+        return sendErrorResponse(res, ["Stripe account not found for this user"], 404);
+      }
+
+      const { accountId, onboardingUrl } = await regenerateStripeOnboardingLink({
+        accountId: user.stripeAccountId,
+      });
+
+      // Optionally update stored onboarding link
+      await BusinessAuthService.setupConnectAccount({
+        userId,
+        stripeAccountId: accountId,
+        stripeOnboardingUrl: onboardingUrl,
+      });
+
+      return sendSuccessResponse(
+        res,
+        ["New onboarding link generated successfully"],
+        { accountId, onboardingUrl },
+        200
+      );
+    } catch (error: any) {
+      return sendErrorResponse(res, [`Failed to regenerate onboarding link: ${error.message}`], 500);
+    }
+  }
+
 }

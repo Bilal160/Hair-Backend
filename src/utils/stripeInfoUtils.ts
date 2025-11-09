@@ -93,3 +93,74 @@ export const createStripeConnectAccount = async (
     throw new Error(error?.message || "Stripe Connect account creation failed");
   }
 };
+
+
+// Check Account Status
+
+export const checkStripeAccountStatus = async (accountId: string) => {
+  try {
+    const account = await stripeClient.accounts.retrieve(accountId);
+
+    // You can inspect fields like these:
+    const detailsSubmitted = account.details_submitted; // boolean
+    const payoutsEnabled = account.payouts_enabled; // boolean
+    const chargesEnabled = account.charges_enabled; // boolean
+    const requirements = account.requirements; // verification details
+
+    const verificationStatus = {
+      verified:
+        account.details_submitted &&
+        account.charges_enabled &&
+        account.payouts_enabled,
+      details_submitted: account.details_submitted,
+      payouts_enabled: account.payouts_enabled,
+      charges_enabled: account.charges_enabled,
+      currently_due: account.requirements?.currently_due || [],
+      eventually_due: account.requirements?.eventually_due || [],
+    };
+
+    return verificationStatus;
+  } catch (error: any) {
+    console.error("Error checking Stripe account status:", error);
+    throw new Error(error?.message || "Failed to check account status");
+  }
+};
+
+
+// Regernerate Account Obboarding Url
+
+export const regenerateStripeOnboardingLink = async ({
+  accountId,
+  refreshUrl = "https://hair-salon-frontend-rouge.vercel.app/retry-onboarding",
+  returnUrl = "https://hair-salon-frontend-rouge.vercel.app/onboarding-success",
+}: {
+  accountId: string;
+  refreshUrl?: string;
+  returnUrl?: string;
+}): Promise<{ accountId: string; onboardingUrl: string }> => {
+  try {
+    // Ensure account exists before generating link
+    const account = await stripeClient.accounts.retrieve(accountId);
+
+    if (!account) {
+      throw new Error("Invalid Stripe account ID. Account not found.");
+    }
+
+    // Generate a new onboarding session link for updating details
+    const accountLink = await stripeClient.accountLinks.create({
+      account: accountId,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
+      type: "account_onboarding",
+    });
+
+    return {
+      accountId,
+      onboardingUrl: accountLink.url,
+    };
+  } catch (error: any) {
+    console.error("Error regenerating Stripe onboarding link:", error);
+    throw new Error(error?.message || "Failed to regenerate Stripe onboarding link");
+  }
+};
+

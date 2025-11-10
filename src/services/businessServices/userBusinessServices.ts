@@ -1,5 +1,7 @@
+import path from "path";
 import { Service } from "../../../src/models/serviceModel";
 import { ReviewsService } from "../../services/review/reviewServices";
+import { populate } from "dotenv";
 
 export class ListofServices {
 
@@ -255,6 +257,17 @@ export class ListofServices {
                                 path: "featuredImage",
                                 select: "url _id webpUrl",
                             },
+                            {
+                                path: "businessReviews",
+                                populate: {
+                                    path: "user",
+                                    populate: {
+                                        path: "profilePhoto",
+                                        select: "url _id"
+                                    }
+
+                                }
+                            }
                         ],
                     },
                 ])

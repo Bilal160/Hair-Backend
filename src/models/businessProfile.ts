@@ -131,6 +131,13 @@ BusinessProfileSchema.virtual("user", {
   justOne: true,
 });
 
+BusinessProfileSchema.virtual("businessReviews", {
+  ref: "Review",
+  localField: "_id",
+  foreignField: "businessId",
+  justOne: true,
+});
+
 BusinessProfileSchema.virtual("featuredImage", {
   ref: "imagesUploads",
   localField: "featuredImageId",

@@ -135,7 +135,7 @@ BusinessProfileSchema.virtual("businessReviews", {
   ref: "Review",
   localField: "_id",
   foreignField: "businessId",
-  justOne: true,
+  justOne: false,
 });
 
 BusinessProfileSchema.virtual("featuredImage", {

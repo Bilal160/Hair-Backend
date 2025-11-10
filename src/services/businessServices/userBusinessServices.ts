@@ -261,6 +261,7 @@ export class ListofServices {
                                 path: "businessReviews",
                                 populate: {
                                     path: "user",
+                                    select: "-password",
                                     populate: {
                                         path: "profilePhoto",
                                         select: "url _id"

@@ -16,11 +16,8 @@ export const userCreateSchema = z
     }),
     phone: z
       .string()
-      .regex(/^\+?[1-9]\d{1,14}$/, {
-        message: "Invalid phone number format",
-      })
       .optional(),
-      roleType: z
+    roleType: z
       .number({ required_error: "Role type is required" })
       .min(0, { message: "Role type must be 0 or 1" })
       .max(1, { message: "Role type must be 0 or 1" })

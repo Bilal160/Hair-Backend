@@ -85,7 +85,6 @@ export class BusinessAuthController {
         name: result.data.name,
         email: result.data.email,
         password: result.data.password,
-        phone: result.data.phone,
         roleType: 1,
         stripeCustomerId: stripeCustomer?.id || "",
       } as IUser);

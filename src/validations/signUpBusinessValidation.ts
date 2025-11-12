@@ -11,6 +11,7 @@ export const signUpBusinessUser = z.object({
     businessName: z.string({ required_error: "Business name is required" }).min(1),
     businessDescription: z.string({ required_error: "Business description is required" }).min(1),
     operatingHours: z.string({ required_error: "Operating hours is required" }).min(1),
+    operatingDays: z.string({ required_error: "Operating Days is required" }).min(1),
     phone: z.string().optional(),
     businessLocation: z.object({
       type: z.literal("Point"),

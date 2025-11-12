@@ -75,12 +75,8 @@ export class BusinessAuthController {
 
       const state = result.data?.businessInfo.businessLocation.state;
       const country = getCountryCode(state ?? "");
-      const { accountId, accountOnboardingUrl } = await createStripeConnectAccount({
-        email: result.data.email,
-        country: "CA" // use dynamic country if available, fallback to "CA"
-      });
 
-      console.log(accountId, accountOnboardingUrl, "accountId and accountOnboardingUrl");
+
 
 
 
@@ -90,8 +86,6 @@ export class BusinessAuthController {
         email: result.data.email,
         password: result.data.password,
         phone: result.data.phone,
-        stripeAccountId: accountId,
-        stripeOnboardingUrl: accountOnboardingUrl,
         roleType: 1,
         stripeCustomerId: stripeCustomer?.id || "",
       } as IUser);
@@ -167,8 +161,6 @@ export class BusinessAuthController {
       const businessProfile =
         await BusinessProfileService.createBusinessProfile({
           userId: user?.user?._id,
-          stripeAccountId: accountId,
-          stripeOnboardingUrl: accountOnboardingUrl,
           ...result.data.businessInfo, // assuming businessInfo object contains business fields
           businessPhotosIds,
           businessNICPhotoIds,
@@ -243,63 +235,61 @@ export class BusinessAuthController {
   static async UpdateBusinessUser(req: Request, res: Response) {
     const userId = req.userId;
 
-    const formattedData = await BusinessAuthService.formattedData({
-      ...req.body,
-    });
-
-    console.log(formattedData, "formattedData");
     try {
-      let profilePhotoId: string | null = null;
+      const formattedData = await BusinessAuthService.formattedData({
+        ...req.body,
+      });
 
+      console.log(formattedData, "formattedData");
+
+      // ✅ Set to undefined (so we can decide later if it should be updated)
+      let profilePhotoId: string | null | undefined = undefined;
+
+      // -------------------------------
+      // 🧹 CASE 1: User wants to remove photo
+      // -------------------------------
       if (formattedData.removePhoto == "true") {
-        const existingPhoto = await BusinessAuthService.getExistingPhoto(
-          userId
-        );
-        console.log(existingPhoto, "existingPhoto");
-
+        const existingPhoto = await BusinessAuthService.getExistingPhoto(userId);
         const photoId = existingPhoto?.profilePhotoId;
-        let photoKey: string | undefined = undefined;
+
         if (photoId) {
           const photoDoc = await ImagesService.getPhotoById(photoId as any);
-          photoKey = photoDoc?.key;
-        }
+          const photoKey = photoDoc?.key;
 
-        if (photoKey && photoId) {
-          const deletedPhoto = await ImagesService.deletePhotoById(
-            photoId as any,
-            photoKey
-          );
-          console.log(deletedPhoto, "deletedPhoto");
-          // Set profilePhotoId to null after deletion
+          if (photoKey) {
+            const deletedPhoto = await ImagesService.deletePhotoById(photoId as any, photoKey);
+            console.log(deletedPhoto, "deletedPhoto");
+          }
+
+          // ✅ Explicitly mark it as removed
           profilePhotoId = null;
         }
       }
 
+      // -------------------------------
+      // 📸 CASE 2: New photo uploaded
+      // -------------------------------
       const profilePhotos = (req.files as any)?.profilePhoto;
 
       if (profilePhotos && profilePhotos.length > 0) {
-        const existingPhoto = await BusinessAuthService.getExistingPhoto(
-          userId
-        );
+        const existingPhoto = await BusinessAuthService.getExistingPhoto(userId);
         const photoId = existingPhoto?.profilePhotoId;
-        let photoKey: string | undefined = undefined;
+
         if (photoId) {
           const photoDoc = await ImagesService.getPhotoById(photoId as any);
-          photoKey = photoDoc?.key;
-        }
+          const photoKey = photoDoc?.key;
 
-        if (photoKey && photoId) {
-          const deletedPhoto = await ImagesService.deletePhotoById(
-            photoId as any,
-            photoKey
-          );
-          console.log(deletedPhoto, "deletedPhoto");
+          if (photoKey) {
+            const deletedPhoto = await ImagesService.deletePhotoById(photoId as any, photoKey);
+            console.log(deletedPhoto, "deletedPhoto");
+          }
         }
 
         const uploadedId = await handlePhotoUpload(
           Array.isArray(profilePhotos) ? profilePhotos : [profilePhotos],
           "images"
         );
+
         if (uploadedId && Array.isArray(uploadedId)) {
           profilePhotoId = uploadedId[0];
         } else if (uploadedId) {
@@ -307,27 +297,39 @@ export class BusinessAuthController {
         }
       }
 
-      const updatedData = {
+      // -------------------------------
+      // 🧠 CASE 3: No new photo & no remove request
+      // -------------------------------
+      // ✅ Leave profilePhotoId undefined so it won't overwrite existing image
+
+      const updatedData: any = {
         name: formattedData.name,
         email: formattedData.email,
         phone: formattedData.phoneNumber,
         userId,
-        profilePhotoId: profilePhotoId
-          ? new (require("mongoose").Types.ObjectId)(profilePhotoId)
-          : null, // will be null if deleted
       };
 
+      // ✅ Only update photo if we have a change (upload/remove)
+      if (profilePhotoId !== undefined) {
+        updatedData.profilePhotoId = profilePhotoId
+          ? new (require("mongoose").Types.ObjectId)(profilePhotoId)
+          : null;
+      }
+
       const user = await BusinessAuthService.updateUser(updatedData);
+
       return sendSuccessResponse(
         res,
         ["User updated successfully"],
-        { user: user },
+        { user },
         200
       );
     } catch (error) {
+      console.error("UpdateBusinessUser Error:", error);
       return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
     }
   }
+
 
   static async ChangePasswordForBusiness(req: Request, res: Response) {
     const userId = req.userId;

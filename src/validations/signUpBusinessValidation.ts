@@ -5,13 +5,13 @@ export const signUpBusinessUser = z.object({
   name: z.string({ required_error: "Name is required" }).min(1, { message: "Name must be at least 1 character" }),
   password: z.string({ required_error: "Password is required" }).min(8, { message: "Password must be at least 8 characters" }),
   confirmPassword: z.string({ required_error: "Confirm password is required" }),
-  phone: z.string({ required_error: "Business phone is required" }),
+  phone: z.string().optional(),
 
   businessInfo: z.object({
     businessName: z.string({ required_error: "Business name is required" }).min(1),
     businessDescription: z.string({ required_error: "Business description is required" }).min(1),
     operatingHours: z.string({ required_error: "Operating hours is required" }).min(1),
-    phone: z.string({ required_error: "Business phone is required" }),
+    phone: z.string().optional(),
     businessLocation: z.object({
       type: z.literal("Point"),
       coordinates: z.tuple([z.number(), z.number()]), // [longitude, latitude]

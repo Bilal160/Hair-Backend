@@ -126,7 +126,7 @@ export class userBookingService {
         }
     }
 
-    static async processPaymentForBooking(bookingId: string, paymentMethodId: string) {
+    static async processPaymentForBooking(bookingId: string) {
         try {
             // 1️⃣ Find booking and populate required fields
             const booking = await Booking.findById(bookingId)
@@ -153,37 +153,17 @@ export class userBookingService {
 
             if (!booking) throw new Error("Booking not found");
 
-            console.log(booking.serviceProvider, "Service Provide")
 
-            const service: any = booking?.serviceInfo;
-            const serviceProvider: any = booking?.serviceProvider;
 
-            if (!service || !serviceProvider) {
-                throw new Error("Missing service or service provider info");
-            }
 
-            if (!serviceProvider.stripeAccountId) {
-                throw new Error("Service provider does not have a Stripe Connect account");
-            }
 
-            // 2️⃣ Calculate amounts
-            const amount = Math.round(service.price * 100); // Stripe uses cents
-            const platformFee = Math.round(amount * 0.10); // 10% platform fee
+
+
+
+            // 10% platform fee
 
             // 3️⃣ Create PaymentIntent
-            const paymentIntent = await stripeClient.paymentIntents.create({
-                amount,
-                currency: "cad",
-                customer: booking?.bookingUser?.stripeCustomerId as string | undefined || "",
-                payment_method: paymentMethodId,
-                confirm: true,
-                automatic_payment_methods: { enabled: true, allow_redirects: "never" },
-                application_fee_amount: platformFee, // 💰 Platform’s commission
-                transfer_data: {
-                    destination: serviceProvider.stripeAccountId, // 💸 Send to provider’s connected account
-                },
-                description: `Payment for booking ${bookingId}`,
-            });
+
 
             // 4️⃣ Update booking status
             booking.bookingStatus = 3; // e.g., “Paid”
@@ -192,7 +172,7 @@ export class userBookingService {
             return {
                 success: true,
                 message: "Payment successful",
-                paymentIntent,
+
             };
         } catch (error: any) {
             console.error("❌ Error in processPaymentForBooking:", error.message);

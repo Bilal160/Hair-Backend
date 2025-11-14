@@ -1,5 +1,6 @@
 import * as express from "express";
 import bodyParser from "body-parser";
+import adminAuth from "./adminAuth";
 import cors from "cors";
 import userAuth from "./userAuth";
 import businessAuth from "./businessAuth";
@@ -12,6 +13,8 @@ import review from "./reviews";
 import businessBooking from "./businessBooking";
 import { asyncHandler } from "../utils/helperUtils";
 import { BusinessAuthController } from "../controllers/auth/businessAuthController";
+import adminBlogs from "./adminBlogs";
+
 
 // Import route modules
 
@@ -46,7 +49,8 @@ export const routes = () => {
   router.use("/user/booking/", userBooking);
   router.use("/business/booking/", businessBooking);
   router.use("/user/review", review);
-
+  router.use("/auth/admin", adminAuth);
+  router.use("/admin/blog", adminBlogs);
 
   return router;
 };

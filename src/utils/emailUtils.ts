@@ -169,7 +169,7 @@ function emailTemplates(
 
         <div style="margin-top: 40px; font-size: 14px; color: #666;">
           <p>Regards,</p>
-          <p><strong>Pronostic</strong></p>
+          <p><strong>Crownity</strong></p>
         </div>
       </div>
     `,

@@ -15,6 +15,7 @@ import { asyncHandler } from "../utils/helperUtils";
 import { BusinessAuthController } from "../controllers/auth/businessAuthController";
 import adminBlogs from "./adminBlogs"
 import userBlogs from "./userBlogs"
+import contactUs from "./contactUs";
 
 
 // Import route modules
@@ -53,6 +54,7 @@ export const routes = () => {
   router.use("/auth/admin", adminAuth);
   router.use("/admin/blog", adminBlogs);
   router.use("/user/blog", userBlogs);
+  router.use("/user/contact", contactUs);
 
 
   return router;

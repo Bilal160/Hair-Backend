@@ -16,6 +16,8 @@ import { BusinessAuthController } from "../controllers/auth/businessAuthControll
 import adminBlogs from "./adminBlogs"
 import userBlogs from "./userBlogs"
 import contactUs from "./contactUs";
+import adminBusinesses from "./adminBusinesses";
+
 
 
 // Import route modules
@@ -55,6 +57,7 @@ export const routes = () => {
   router.use("/admin/blog", adminBlogs);
   router.use("/user/blog", userBlogs);
   router.use("/user/contact", contactUs);
+  router.use("/business/admin", adminBusinesses);
 
 
   return router;

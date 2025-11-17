@@ -134,17 +134,17 @@ export class AdminBusinessProfileService {
         limit,
         sort: { createdAt: -1 },
         populate: [
-          { path: "user", select: "name email" },
-          {
-            path: "bannerImage",
-            select:
-              "-fileName -__v -createdAt -updatedAt -fileType -fileExtension -fileSize -uploadDate",
-          },
-          {
-            path: "logoImage",
-            select:
-              "-fileName -__v -createdAt -updatedAt -fileType -fileExtension -fileSize -uploadDate",
-          },
+          { path: "user", select: "name email" }
+          // {
+          //   path: "bannerImage",
+          //   select:
+          //     "-fileName -__v -createdAt -updatedAt -fileType -fileExtension -fileSize -uploadDate",
+          // },
+          // {
+          //   path: "logoImage",
+          //   select:
+          //     "-fileName -__v -createdAt -updatedAt -fileType -fileExtension -fileSize -uploadDate",
+          // },
         ],
       };
 

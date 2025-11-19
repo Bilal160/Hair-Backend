@@ -21,7 +21,17 @@ export class AdminBusinessProfileController {
       startDate,
       endDate,
       subscriptionType,
+      isApproved
     } = req.query;
+
+    // Fix string-to-boolean conversion
+    const parsedIsApproved =
+      isApproved === "true"
+        ? true
+        : isApproved === "false"
+          ? false
+          : undefined; // if param not provided
+
     const businesses =
       await AdminBusinessProfileService.fetchBusinessesWithPagination(
         Number(page),
@@ -30,7 +40,8 @@ export class AdminBusinessProfileController {
         subscriptionStatus as string,
         startDate as string,
         endDate as string,
-        subscriptionType as string
+        subscriptionType as string,
+        parsedIsApproved
       );
 
     if (businesses?.businesses?.length === 0) {
@@ -50,6 +61,7 @@ export class AdminBusinessProfileController {
       return sendErrorResponse(res, ["Failed to fetch businesses"], 500);
     }
   }
+
 
   static async getBusinessProfileById(req: Request, res: Response) {
     const businessId = req.params.businessId;

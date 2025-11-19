@@ -19,8 +19,11 @@ export class AdminBusinessProfileService {
     subscriptionStatus?: string,
     startDate?: string,
     endDate?: string,
-    subscriptionType?: string
+    subscriptionType?: string,
+    isApproved?: boolean
   ) {
+
+    console.log(typeof (isApproved), "Comming")
     try {
       const filterConditions: any = {};
 
@@ -53,6 +56,10 @@ export class AdminBusinessProfileService {
       // ✅ Filter subscriptionType from BusinessProfile
       if (subscriptionType) {
         filterConditions.subscriptionType = subscriptionType;
+      }
+
+      if (typeof isApproved === "boolean") {
+        filterConditions.isApproved = isApproved;
       }
 
       let subscriptionUserIds: string[] = [];

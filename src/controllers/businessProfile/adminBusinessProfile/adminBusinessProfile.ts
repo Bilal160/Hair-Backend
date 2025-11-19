@@ -96,4 +96,39 @@ export class AdminBusinessProfileController {
       return sendErrorResponse(res, ["Error updating user type"], 500);
     }
   }
+
+
+  static async activeOrBlock(req: Request, res: Response) {
+    const { userId } = req.params;
+    const { action } = req.body;
+
+    try {
+      const businessProfile =
+        await AdminBusinessProfileService.activeorblockProfile(
+          userId,
+          action
+        );
+
+      let resMessage = ""
+
+      if (action === false) {
+        resMessage = "Profile Blocked SuccessFully"
+      }
+
+      if (action === true) {
+        resMessage = "Profie Approved Successfully"
+      }
+
+      return sendSuccessResponse(
+        res,
+        [`${resMessage}`],
+        {
+          businessProfile: businessProfile,
+        }
+      );
+    } catch (error) {
+      console.log(error, "error in upateUserTypeController");
+      return sendErrorResponse(res, ["Error updating user type"], 500);
+    }
+  }
 }

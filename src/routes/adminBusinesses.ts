@@ -26,4 +26,11 @@ router.put(
   asyncHandler(AdminBusinessProfileController.updateSubscriptionType)
 );
 
+
+router.put(
+  "/activeorblock/:userId",
+  adminAuthMiddleware,
+  asyncHandler(AdminBusinessProfileController.activeOrBlock)
+);
+
 export default router;

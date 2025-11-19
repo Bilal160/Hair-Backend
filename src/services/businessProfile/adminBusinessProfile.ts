@@ -267,4 +267,28 @@ export class AdminBusinessProfileService {
       throw new Error(`Failed to update subscription type: ${error.message}`);
     }
   }
+
+
+
+  static async activeorblockProfile(
+    userId: string,
+    action: boolean
+  ) {
+    console.log(userId, action, "userId and subscriptionType");
+
+    try {
+      const businessProfile = await BusinessProfile.findOneAndUpdate(
+        { userId },
+        { isApproved: action },
+        { new: true }
+      )
+        .select("_id  userId isApproved userId")
+        .lean();
+
+      console.log(businessProfile, "businessProfile");
+      return businessProfile;
+    } catch (error: any) {
+      throw new Error(`Failed to update subscription type: ${error.message}`);
+    }
+  }
 }

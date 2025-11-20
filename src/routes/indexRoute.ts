@@ -17,6 +17,7 @@ import adminBlogs from "./adminBlogs"
 import userBlogs from "./userBlogs"
 import contactUs from "./contactUs";
 import adminBusinesses from "./adminBusinesses";
+import adminBookings from "./adminBookings";
 
 
 
@@ -51,6 +52,7 @@ export const routes = () => {
   router.use("/business/services", services);
   router.use("/user/services", userServices);
   router.use("/user/booking/", userBooking);
+  router.use("/admin/booking/", adminBookings)
   router.use("/business/booking/", businessBooking);
   router.use("/user/review", review);
   router.use("/auth/admin", adminAuth);

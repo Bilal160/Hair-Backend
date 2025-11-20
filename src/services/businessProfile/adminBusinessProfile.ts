@@ -205,23 +205,33 @@ export class AdminBusinessProfileService {
         .select(
           "businessName businessDescription businessLocation phone telegramLink instagramId  averageRating totalReviews reviews websiteLink logoImageId userId  subscriptionType bannerImageId   lunchSpecialTime   dailySpecialTime  operatingHours"
         )
+
         .populate([
           {
-            path: "logoImage",
-            select:
-              "-fileName -__v -createdAt -updatedAt -fileType -fileExtension -fileSize -uploadDate",
-          },
-          {
-            path: "bannerImage",
-            select:
-              "-fileName -__v -createdAt -updatedAt -fileType -fileExtension -fileSize -uploadDate",
-          },
-
-          {
             path: "user",
-            select: "name email _id",
+            select: "firstName lastName email ", // Only select these fields
           },
-        ]);
+          {
+            path: "businessPhotos",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          },
+          {
+            path: "featuredImage",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          },
+          {
+            path: "businessNICPhoto",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          },
+          {
+            path: "businessRegistrationDoc",
+            select:
+              "-fileName -__v -createdAt -updatedAt  -fileType -fileExtension -fileSize -uploadDate",
+          }
+        ])
 
       console.log(businessProfile?.userId, "businessProfile");
 

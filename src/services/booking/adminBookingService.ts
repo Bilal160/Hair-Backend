@@ -73,6 +73,8 @@ export class AdminbusinessBookingService {
                     { path: "business", select: "_id businessName phone operatingHours operatingDays businessLocation" },
                     { path: "serviceInfo", select: "_id name price servicePhotoId", populate: { path: "servicePhoto", select: "url key" } },
                     { path: "bookingUser", select: "_id name phone email" },
+                    { path: "serviceProvider", select: "_id name phone email" },
+
                 ],
             };
 

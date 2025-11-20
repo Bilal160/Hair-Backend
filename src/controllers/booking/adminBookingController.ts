@@ -6,6 +6,7 @@ import { createBookingSchema, updateBookingSchema } from "../../validations/book
 import mongoose from "mongoose";
 import { formatToUTC } from "../../utils/helperUtils";
 import { businessBookingService } from "../../services/booking/businessBookingService";
+import { AdminbusinessBookingService } from "../../services/booking/adminBookingService";
 
 export class AdminBusinessBookingController {
     // CREATE Booking
@@ -15,7 +16,7 @@ export class AdminBusinessBookingController {
     static async getBooking(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const booking = await businessBookingService.getBookingById(id);
+            const booking = await AdminbusinessBookingService.getBookingById(id);
             if (!booking) return sendErrorResponse(res, ["Booking not found"], 404);
 
             return sendSuccessResponse(res, ["Booking fetched successfully"], { booking });
@@ -33,7 +34,7 @@ export class AdminBusinessBookingController {
             const limit = parseInt(req.query.limit as string) || 10;
             const { businessId, active, bookingDate } = req.query;
 
-            const result = await businessBookingService.fetchBookingsWithPagination({
+            const result = await AdminbusinessBookingService.fetchBookingsWithPagination({
                 businessId: businessId as string,
                 bookingStatus: Number(active) || undefined,
                 bookingDate: bookingDate as string,
@@ -59,7 +60,7 @@ export class AdminBusinessBookingController {
                 return sendErrorResponse(res, [errorMessage], 400);
             }
 
-            const updatedBooking = await businessBookingService.updateBooking(id, result.data);
+            const updatedBooking = await AdminbusinessBookingService.updateBooking(id, result.data);
             if (!updatedBooking) return sendErrorResponse(res, ["Booking not found"], 404);
 
             return sendSuccessResponse(res, ["Booking updated successfully"], { booking: updatedBooking });

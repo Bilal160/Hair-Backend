@@ -4,7 +4,7 @@ export const createBlogSchema = z.object({
   title: z
     .string({ required_error: "Title is required" })
     .min(1, { message: "Title must be at least 1 character" })
-   
+
     .trim(),
   description: z
     .string({ required_error: "Description is required" })
@@ -40,7 +40,7 @@ export const updateBlogSchema = z.object({
     .optional()
     .nullable(),
   removeFeaturedImage: z
-    .string()
+    .boolean()
     .optional(),
 });
 

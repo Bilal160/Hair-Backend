@@ -370,4 +370,21 @@ export class AdminAuthController {
   //     return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
   //   }
   // }
+
+  static async logoutUser(req: Request, res: Response) {
+    try {
+      const token = req.token;
+
+      await destroyRedisClientToken(token);
+
+      return sendSuccessResponse(
+        res,
+        ["User logged out successfully"],
+        {},
+        200
+      );
+    } catch (error) {
+      return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
+    }
+  }
 }

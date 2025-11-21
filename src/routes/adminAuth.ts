@@ -24,10 +24,18 @@ router.put(
   asyncHandler(AdminAuthController.resetAdminPassword)
 );
 
+router.delete(
+  "/logout",
+  adminAuthMiddleware,
+  asyncHandler(AdminAuthController.logoutUser)
+);
+
+
 // router.put(
 //   "/:id/changePassword",
 //   adminAuthMiddleware,
 //   asyncHandler(AdminAuthController.changeUserPasswordByAdmin)
 // );
+
 
 export = router;

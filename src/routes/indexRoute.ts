@@ -18,6 +18,7 @@ import userBlogs from "./userBlogs"
 import contactUs from "./contactUs";
 import adminBusinesses from "./adminBusinesses";
 import adminBookings from "./adminBookings";
+import adminUsers from "./adminUsers";
 
 
 
@@ -60,6 +61,7 @@ export const routes = () => {
   router.use("/user/blog", userBlogs);
   router.use("/user/contact", contactUs);
   router.use("/business/admin", adminBusinesses);
+  router.use("/admin/user", adminUsers);
 
 
   return router;

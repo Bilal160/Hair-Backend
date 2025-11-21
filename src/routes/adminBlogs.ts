@@ -12,6 +12,7 @@ router.use(adminAuthMiddleware);
 router.post(
   "/",
   adminAuthMiddleware,
+  uploadPhotoMiddleware,
   asyncHandler(AdminBlogController.createBlog)
 );
 
@@ -27,6 +28,7 @@ router.get("/blog-slug/:blogSlug", asyncHandler(AdminBlogController.getBlogByBlo
 
 router.put(
   "/:blogId",
+  adminAuthMiddleware,
   uploadPhotoMiddleware,
   asyncHandler(AdminBlogController.updateBlog)
 );

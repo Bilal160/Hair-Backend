@@ -3,30 +3,51 @@ import { IBlog } from "../../interfaces/blogInterface";
 import { deleteFile, handlePhotoUpload } from "../../utils/imagesUtils";
 
 export class BlogService {
-  static async createBlog(data: IBlog & { featuredImage?: Express.Multer.File }) {
+  // static async createBlog(data: IBlog & { featuredImage?: Express.Multer.File }) {
+  //   try {
+
+
+  //     // If image added then image upload
+
+
+  //     // Generate blogSlug from slug
+  //     const blogSlug = await this.generateBlogSlug(data.slug);
+
+  //     const blogData = {
+  //       ...data,
+  //       blogSlug,
+  //     };
+
+  //     // Remove the file from data before saving
+  //     delete blogData.featuredImage;
+
+  //     return await Blog.create(blogData);
+  //   } catch (error: any) {
+  //     console.error("Error creating blog:", error.message);
+  //     throw new Error("Failed to create blog");
+  //   }
+  // }
+
+  static async createBlog(data: IBlog) {
     try {
-
-
-      // If image added then image upload
-
-
-      // Generate blogSlug from slug
-      const blogSlug = await this.generateBlogSlug(data.slug);
-
-      const blogData = {
-        ...data,
-        blogSlug,
-      };
-
-      // Remove the file from data before saving
-      delete blogData.featuredImage;
-
-      return await Blog.create(blogData);
-    } catch (error: any) {
-      console.error("Error creating blog:", error.message);
+      const blog = await Blog.create(data);
+      return blog;
+    } catch (err: any) {
+      console.error("Create Blog Error:", err);
       throw new Error("Failed to create blog");
     }
   }
+
+  static async updateBlog(id: string, data: Partial<IBlog>) {
+    const updatedBlog = await Blog.findByIdAndUpdate(id, data, {
+      new: true,
+    })
+      .select("-__v")
+      .populate("featuredImage", "url _id");
+
+    return updatedBlog;
+  }
+
 
   static async getAllBlogs(
     page: number = 1,
@@ -119,28 +140,28 @@ export class BlogService {
     }
   }
 
-  static async updateBlog(
-    id: string,
-    data: Partial<IBlog>
-  ) {
-    const existingBlog = await Blog.findById(id);
-    if (!existingBlog) throw new Error("Blog not found");
+  // static async updateBlog(
+  //   id: string,
+  //   data: Partial<IBlog>
+  // ) {
+  //   const existingBlog = await Blog.findById(id);
+  //   if (!existingBlog) throw new Error("Blog not found");
 
-    const updatedBlog = await Blog.findByIdAndUpdate(
-      id,
-      {
-        ...data, // contains title, content, featuredImageId, slug, etc.
-      },
-      { new: true }
-    )
-      .select("-__v")
-      .populate({
-        path: "featuredImage",
-        select: "url _id",
-      });
+  //   const updatedBlog = await Blog.findByIdAndUpdate(
+  //     id,
+  //     {
+  //       ...data, // contains title, content, featuredImageId, slug, etc.
+  //     },
+  //     { new: true }
+  //   )
+  //     .select("-__v")
+  //     .populate({
+  //       path: "featuredImage",
+  //       select: "url _id",
+  //     });
 
-    return updatedBlog;
-  }
+  //   return updatedBlog;
+  // }
 
 
   static async deleteBlog(id: string) {
@@ -210,4 +231,33 @@ export class BlogService {
     const frontendUrl = process.env.FRONTEND_URL?.trim().replace(/\/+$/, "") || "";
     return `${frontendUrl}/blog/${slug}`;
   }
+
+
+
+  static async formattedBlogData(req: any) {
+    const body = req?.body || {};
+
+    console.log(body, "comming body")
+    const files = req.files || {};
+
+    const cleaned: Record<string, any> = {};
+
+    // clean string values
+    for (let [key, value] of Object.entries(body)) {
+      key = key.trim();
+      if (typeof value === "string") cleaned[key] = value.trim();
+      else cleaned[key] = value;
+    }
+
+    // convert to boolean
+    cleaned.removeFeaturedImage = cleaned.removeFeaturedImage === "true";
+
+    // final response
+    return {
+      ...cleaned,
+      featuredImage: files?.featuredImage?.[0] || null,
+    };
+  }
+
+
 }

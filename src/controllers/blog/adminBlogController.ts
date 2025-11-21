@@ -132,7 +132,7 @@ export class AdminBlogController {
 
   static async updateBlog(req: Request, res: Response) {
     try {
-      const blogId = req.params.id;
+      const blogId = req.params.blogId;
       if (!blogId) return sendErrorResponse(res, ["Blog ID is required"], 400);
 
       // 1️⃣ Wait for formatted body

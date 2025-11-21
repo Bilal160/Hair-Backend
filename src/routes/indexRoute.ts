@@ -19,7 +19,7 @@ import contactUs from "./contactUs";
 import adminBusinesses from "./adminBusinesses";
 import adminBookings from "./adminBookings";
 import adminUsers from "./adminUsers";
-
+import adminServices from "./adminServices"
 
 
 // Import route modules
@@ -62,6 +62,8 @@ export const routes = () => {
   router.use("/user/contact", contactUs);
   router.use("/business/admin", adminBusinesses);
   router.use("/admin/user", adminUsers);
+  router.use("/admin/services", adminServices)
+
 
 
   return router;

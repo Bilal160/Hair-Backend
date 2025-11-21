@@ -14,7 +14,7 @@ router.post(
   AdminBlogController.createBlog
 );
 
-router.get("/", AdminBlogController.getAllBlogs);
+router.get("/list", AdminBlogController.getAllBlogs);
 
 router.get("/stats", AdminBlogController.getBlogStats);
 

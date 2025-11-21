@@ -10,7 +10,7 @@ router.use(adminAuthMiddleware);
 
 router.post(
   "/",
-  uploadPhotoMiddleware,
+  adminAuthMiddleware,
   AdminBlogController.createBlog
 );
 

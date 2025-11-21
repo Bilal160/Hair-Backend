@@ -16,6 +16,14 @@ router.post(
   asyncHandler(AdminBlogController.createBlog)
 );
 
+router.put(
+  "/:blogId",
+  adminAuthMiddleware,
+  uploadPhotoMiddleware,
+  asyncHandler(AdminBlogController.updateBlog)
+);
+
+
 router.get("/list", asyncHandler(AdminBlogController.getAllBlogs));
 
 // router.get("/stats", AdminBlogController.getBlogStats);
@@ -26,12 +34,6 @@ router.get("/slug/:slug", asyncHandler(AdminBlogController.getBlogBySlug));
 
 router.get("/blog-slug/:blogSlug", asyncHandler(AdminBlogController.getBlogByBlogSlug));
 
-router.put(
-  "/:blogId",
-  adminAuthMiddleware,
-  uploadPhotoMiddleware,
-  asyncHandler(AdminBlogController.updateBlog)
-);
 
 router.delete("/:blogId", asyncHandler(AdminBlogController.deleteBlog));
 

@@ -10,7 +10,7 @@ import {
   sendSuccessResponse,
 } from "../../utils/responseUtils";
 import { handleValidationErrors } from "../../utils/helperUtils";
-import { handlePhotoUpload } from "../../utils/imagesUtils";
+import { deleteFile, handlePhotoUpload } from "../../utils/imagesUtils";
 
 export class AdminBlogController {
   static async createBlog(req: Request, res: Response) {
@@ -201,66 +201,63 @@ export class AdminBlogController {
   static async updateBlog(req: Request, res: Response) {
     try {
       const { blogId } = req.params;
-      const {
-        title,
-        description,
-        content,
-        featuredImageId,
-        removeFeaturedImage,
-      } = req.body;
+      const { title, description, content } = req.body;
 
-      // Validate input data
-      const result = updateBlogSchema.safeParse({
-        title,
-        description,
-        content,
-        featuredImageId,
-        removeFeaturedImage,
-      });
-
+      // 1️⃣ Validate input
+      const result = updateBlogSchema.safeParse({ title, description, content });
       if (!result.success) {
         const errorMessage = handleValidationErrors(result.error);
-        sendErrorResponse(
-          res,
-          [`Validation Error: ${errorMessage}`],
-          400
-        );
-        return;
+        return sendErrorResponse(res, [`Validation Error: ${errorMessage}`], 400);
       }
 
+      // 2️⃣ Get existing blog
       const existingBlog = await BlogService.getBlogById(blogId);
       if (!existingBlog) {
-        sendErrorResponse(res, ["Blog not found"], 404);
-        return;
+        return sendErrorResponse(res, ["Blog not found"], 404);
       }
 
-      // Generate new slug if title is being updated
+      // 3️⃣ Generate new slug if title changed
       let finalSlug = existingBlog.slug;
       if (result.data.title && result.data.title !== existingBlog.title) {
         finalSlug = await BlogService.generateSlug(result.data.title, blogId);
       }
 
-      // Handle featured image from request
-      const featuredImage = (req.files as any)?.featuredImage?.[0];
+      // 4️⃣ Handle featured image upload
+      const featuredFile = (req.files as any)?.featuredImage?.[0];
+      let featuredImageId = existingBlog.featuredImageId;
 
+      if (featuredFile) {
+        // Delete old image if exists
+        if (existingBlog.featuredImageId) {
+          try {
+            await deleteFile(existingBlog.featuredImageId.toString());
+            console.log("Old featured image deleted");
+          } catch (err) {
+            console.warn("Failed to delete old featured image:", err);
+          }
+        }
+
+        // Upload new image
+        const uploadedId = await handlePhotoUpload(featuredFile, "images");
+        featuredImageId = Array.isArray(uploadedId) ? uploadedId[0] : uploadedId ?? undefined;
+      }
+
+      // 5️⃣ Prepare update data
       const updateData = {
         ...result.data,
         slug: finalSlug,
-        featuredImage: featuredImage || undefined,
+        featuredImageId, // updated or existing
       };
 
+      // 6️⃣ Update blog
       const updatedBlog = await BlogService.updateBlog(blogId, updateData as any);
 
-      sendSuccessResponse(res, ["Blog updated successfully"], {
+      return sendSuccessResponse(res, ["Blog updated successfully"], {
         blog: updatedBlog,
       });
     } catch (error: any) {
-      sendErrorResponse(
-        res,
-        ["Failed to update blog"],
-        500,
-        error.message
-      );
+      console.error("Update blog error:", error);
+      return sendErrorResponse(res, ["Failed to update blog"], 500, error.message);
     }
   }
 

@@ -121,65 +121,27 @@ export class BlogService {
 
   static async updateBlog(
     id: string,
-    data: Partial<IBlog> & {
-      featuredImage?: Express.Multer.File;
-      removeFeaturedImage?: string;
-    }
+    data: Partial<IBlog>
   ) {
-    try {
-      const existingBlog = await Blog.findById(id);
-      if (!existingBlog) {
-        throw new Error("Blog not found");
-      }
+    const existingBlog = await Blog.findById(id);
+    if (!existingBlog) throw new Error("Blog not found");
 
-      let featuredImageId = existingBlog.featuredImageId;
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      id,
+      {
+        ...data, // contains title, content, featuredImageId, slug, etc.
+      },
+      { new: true }
+    )
+      .select("-__v")
+      .populate({
+        path: "featuredImage",
+        select: "url _id",
+      });
 
-      // Handle featured image removal
-      if (data.removeFeaturedImage === "true" && existingBlog.featuredImageId) {
-        try {
-          await deleteFile(existingBlog.featuredImageId.toString());
-          featuredImageId = undefined;
-        } catch (imageError) {
-          console.warn("Failed to delete old featured image:", imageError);
-          featuredImageId = undefined; // Still remove the reference even if file deletion fails
-        }
-      }
-
-      // Handle new featured image upload
-
-
-      // Generate blogSlug if slug is being updated
-      let blogSlug = existingBlog.blogSlug;
-      if (data.slug && data.slug !== existingBlog.slug) {
-        blogSlug = await this.generateBlogSlug(data.slug);
-      }
-
-      // Remove file from data before updating
-      const updateData = { ...data };
-      delete updateData.featuredImage;
-      delete updateData.removeFeaturedImage;
-
-      const updatedBlog = await Blog.findByIdAndUpdate(
-        id,
-        {
-          ...updateData,
-          featuredImageId,
-          blogSlug,
-        },
-        { new: true }
-      )
-        .select("-__v")
-        .populate({
-          path: "featuredImage",
-          select: "url _id",
-        });
-
-      return updatedBlog;
-    } catch (error: any) {
-      console.error("Error updating blog:", error.message);
-      throw new Error("Failed to update blog");
-    }
+    return updatedBlog;
   }
+
 
   static async deleteBlog(id: string) {
     try {

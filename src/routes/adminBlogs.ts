@@ -2,6 +2,7 @@ import * as express from "express";
 import { AdminBlogController } from "../controllers/blog/adminBlogController";
 import { adminAuthMiddleware } from "../middlewares/adminAuthMiddleware";
 import { uploadPhotoMiddleware } from "../middlewares/uploadPhotoMiddleware";
+import { asyncHandler } from "../utils/helperUtils";
 
 const router = express.Router();
 
@@ -11,26 +12,26 @@ router.use(adminAuthMiddleware);
 router.post(
   "/",
   adminAuthMiddleware,
-  AdminBlogController.createBlog
+  asyncHandler(AdminBlogController.createBlog)
 );
 
-router.get("/list", AdminBlogController.getAllBlogs);
+router.get("/list", asyncHandler(AdminBlogController.getAllBlogs));
 
-router.get("/stats", AdminBlogController.getBlogStats);
+// router.get("/stats", AdminBlogController.getBlogStats);
 
-router.get("/:blogId", AdminBlogController.getBlogById);
+router.get("/:blogId", asyncHandler(AdminBlogController.getBlogById));
 
-router.get("/slug/:slug", AdminBlogController.getBlogBySlug);
+router.get("/slug/:slug", asyncHandler(AdminBlogController.getBlogBySlug));
 
-router.get("/blog-slug/:blogSlug", AdminBlogController.getBlogByBlogSlug);
+router.get("/blog-slug/:blogSlug", asyncHandler(AdminBlogController.getBlogByBlogSlug));
 
 router.put(
   "/:blogId",
   uploadPhotoMiddleware,
-  AdminBlogController.updateBlog
+  asyncHandler(AdminBlogController.updateBlog)
 );
 
-router.delete("/:blogId", AdminBlogController.deleteBlog);
+router.delete("/:blogId", asyncHandler(AdminBlogController.deleteBlog));
 
 
 export default router;

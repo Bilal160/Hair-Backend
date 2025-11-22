@@ -37,11 +37,6 @@ router.delete(
 //   asyncHandler(AdminAuthController.changeUserPasswordByAdmin)
 // );
 
-router.put(
-  "/:id/members/changePassword",
-  adminAuthMiddleware,
-  asyncHandler(AdminAuthController.changeUserPasswordByAdmin)
-);
 
 
 router.post(
@@ -49,6 +44,20 @@ router.post(
   adminAuthMiddleware,
   asyncHandler(AdminAuthController.adminRoleUser)
 );
+
+router.get(
+  "/members/list",
+  adminAuthMiddleware,
+  asyncHandler(AdminAuthController.getAllMembers)
+);
+
+router.put(
+  "/:id/members/changePassword",
+  adminAuthMiddleware,
+  asyncHandler(AdminAuthController.changeUserPasswordByAdmin)
+);
+
+
 router.put(
   "/:id/members/update",
   adminAuthMiddleware,
@@ -60,11 +69,6 @@ router.delete(
   asyncHandler(AdminAuthController.DeleteMember)
 );
 
-router.get(
-  "/members/list",
-  adminAuthMiddleware,
-  asyncHandler(AdminAuthController.getAllMembers)
-);
 
 
 export = router;

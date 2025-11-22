@@ -511,8 +511,16 @@ export class AdminAuthController {
         sortBy = "createdAt",
         sortOrder = "desc",
         roleType,
+        isVerified
       } = req.query;
 
+
+      const parsedIsApproved =
+        isVerified === "true"
+          ? true
+          : isVerified === "false"
+            ? false
+            : undefined;
       // ✅ Validate query params using Zod schema
       const queryResult = usersQuerySchema.safeParse({
         page: Number(page),
@@ -521,6 +529,7 @@ export class AdminAuthController {
         sortBy,
         sortOrder,
         roleType: roleType ? Number(roleType) : undefined,
+        parsedIsApproved
       });
 
       if (!queryResult.success) {

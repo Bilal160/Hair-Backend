@@ -20,7 +20,12 @@ router.get(
   "/list",
   adminAuthMiddleware,
   asyncHandler(AdminUserController.fetchUsersWithPaginationController)
+
 );
+router.put(
+  "/activeorblock/:userId",
+  adminAuthMiddleware,
+  asyncHandler(AdminUserController.activeOrBlock))
 
 // router.get(
 //   "/:businessSlug",

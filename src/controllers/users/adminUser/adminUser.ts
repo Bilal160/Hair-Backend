@@ -51,13 +51,21 @@ export class AdminUserController {
 
   static async fetchUsersWithPaginationController(req: Request, res: Response) {
     console.log(req.roleType, "roleType in fetchBusinessesWithPagination");
-    const { page = 1, limit = 10, query } = req.query;
+    const { page = 1, limit = 10, query, isVerified } = req.query;
     console.log(page, limit, query, "page, limit, query");
+
+    const parsedIsApproved =
+      isVerified === "true"
+        ? true
+        : isVerified === "false"
+          ? false
+          : undefined;
 
     const users = await AdminUserService.fetchUsersWithPagination(
       Number(page),
       Number(limit),
-      query as string
+      query as string,
+      parsedIsApproved
     );
 
     if (users?.users?.length === 0) {
@@ -71,6 +79,40 @@ export class AdminUserController {
       return sendSuccessResponse(res, ["Users fetched successfully"], users);
     } catch (error) {
       return sendErrorResponse(res, ["Failed to fetch users"], 500);
+    }
+  }
+
+  static async activeOrBlock(req: Request, res: Response) {
+    const { userId } = req.params;
+    const { action } = req.body;
+
+    try {
+      const businessProfile =
+        await AdminUserService.activeorblockProfile(
+          userId,
+          action
+        );
+
+      let resMessage = ""
+
+      if (action === false) {
+        resMessage = "Profile Blocked SuccessFully"
+      }
+
+      if (action === true) {
+        resMessage = "Profie Approved Successfully"
+      }
+
+      return sendSuccessResponse(
+        res,
+        [`${resMessage}`],
+        {
+          businessProfile: businessProfile,
+        }
+      );
+    } catch (error) {
+      console.log(error, "error in upateUserTypeController");
+      return sendErrorResponse(res, ["Error updating user type"], 500);
     }
   }
 }

@@ -522,7 +522,8 @@ export class AdminAuthService {
     searchParam?: string,
     roleType?: number, // Optional: specific role filter
     sortBy: string = "createdAt",
-    sortOrder: "asc" | "desc" = "desc"
+    sortOrder: "asc" | "desc" = "desc",
+    isVerified?: boolean
   ) {
     try {
       const query: any = {};
@@ -542,6 +543,12 @@ export class AdminAuthService {
           { email: { $regex: searchParam, $options: "i" } },
         ];
       }
+
+
+      if (typeof isVerified === "boolean") {
+        query.isVerified = isVerified;
+      }
+
 
       const options: any = {
         page,

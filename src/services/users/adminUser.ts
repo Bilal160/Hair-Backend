@@ -9,7 +9,8 @@ export class AdminUserService {
   static async fetchUsersWithPagination(
     page: number,
     limit: number,
-    query?: string
+    query?: string,
+    isVerified?: boolean
   ) {
     try {
       console.log(page, limit, query, "page, limit, query");
@@ -23,6 +24,10 @@ export class AdminUserService {
           { email: { $regex: trimmedSearch, $options: "i" } },
           { userType: { $regex: trimmedSearch, $options: "i" } },
         ];
+      }
+
+      if (typeof isVerified === "boolean") {
+        filterConditions.isVerified = isVerified;
       }
 
       // Always filter by roleType = 1
@@ -40,6 +45,7 @@ export class AdminUserService {
           "userType",
           "createdAt",
           "updatedAt",
+          "isVerified"
         ],
       };
 
@@ -57,6 +63,28 @@ export class AdminUserService {
     } catch (error) {
       console.error("Error fetching businesses:", error);
       throw error;
+    }
+  }
+
+
+  static async activeorblockProfile(
+    userId: string,
+    action: boolean
+  ) {
+    console.log(userId, action, "userId and subscriptionType");
+
+    try {
+      const businessProfile = await User.findOneAndUpdate(
+        { userId },
+        { isVerified: action },
+        { new: true }
+      )
+        .select("_id  userId isApproved userId")
+        .lean();
+
+      return businessProfile;
+    } catch (error: any) {
+      throw new Error(`Failed to update subscription type: ${error.message}`);
     }
   }
 }

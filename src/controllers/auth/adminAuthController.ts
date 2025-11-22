@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
 import { IUser } from "../../interfaces/userInterface";
 import {
+  addRoleBaseUser,
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
   userCreateSchema,
+  usersQuerySchema,
 } from "../../validations/userValidation";
 
 import { generateToken, handleValidationErrors } from "../../utils/helperUtils";
@@ -19,6 +21,7 @@ import {
 } from "../../utils/redisUtils";
 import { sendMail } from "../../utils/emailUtils";
 import { AdminAuthService } from "../../services/auth/adminAuthServices";
+import { changeUserPasswordByAdminSchema } from "../../validations/changeUserPasswordByAdmin";
 
 export class AdminAuthController {
   constructor(private readonly adminAuthService: AdminAuthService) { }
@@ -385,6 +388,212 @@ export class AdminAuthController {
       );
     } catch (error) {
       return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
+    }
+  }
+
+
+
+  static async adminRoleUser(req: Request, res: Response) {
+    const { email, name, password, confirmPassword, roleType } = req.body;
+    try {
+      const result = await addRoleBaseUser.safeParse(req.body);
+      if (!result.success) {
+        const errorMessage = handleValidationErrors(result.error);
+        return sendErrorResponse(
+          res,
+          [`Validation Error: ${errorMessage}`],
+          400
+        );
+      }
+
+      const userExists = await AuthService.userExists(email);
+      if (userExists) {
+        return sendErrorResponse(
+          res,
+          [`Email already registered try with different email`],
+          400
+        );
+      }
+
+      const user = await AdminAuthService.addRoleUser({
+        ...result?.data,
+      } as IUser);
+
+      return sendSuccessResponse(
+        res,
+        [`User registered successfully`],
+        { data: user },
+        201
+      );
+    } catch (error) {
+      return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
+    }
+  }
+
+  static async UpdateMemeber(req: Request, res: Response) {
+    const memberId = req.params.id;
+    const adminroleType = req.roleType;
+
+
+    if (adminroleType !== 1) {
+      return sendErrorResponse(
+        res,
+        ["You are not authorized to update Memeber Detail"],
+        403
+      );
+    }
+
+    const { email, name, roleType } = req.body;
+
+    if (!memberId || memberId.length === 0) {
+      return sendErrorResponse(res, [`MemberId is Required`], 400);
+    }
+    try {
+      const updatedData = {
+        name,
+        email,
+        memberId,
+        roleType,
+      };
+
+      const user = await AdminAuthService.updateMember(updatedData);
+      return sendSuccessResponse(
+        res,
+        ["Member Updated Successfully"],
+        { user: user },
+        200
+      );
+    } catch (error) {
+      return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
+    }
+  }
+  static async changeUserPasswordByAdmin(req: Request, res: Response) {
+    const userId = req.params.id;
+    const { password, confirmPassword } = req.body;
+    const result = await changeUserPasswordByAdminSchema.safeParse({
+      userId,
+      password,
+      confirmPassword,
+    });
+    if (!result.success) {
+      const errorMessage = handleValidationErrors(result.error);
+      return sendErrorResponse(res, [`Validation Error: ${errorMessage}`], 400);
+    }
+
+    try {
+      const user = await AdminAuthService.changeMemberPassword({
+        userId,
+        confirmPassword,
+      });
+      return sendSuccessResponse(
+        res,
+        ["Password changed successfully"],
+        { user: user },
+        200
+      );
+    } catch (error: any) {
+      if (error?.message == "User not found") {
+        return sendErrorResponse(res, ["User not found"], 404);
+      }
+      return sendErrorResponse(res, [`Internal Server Error: ${error}`], 500);
+    }
+  }
+
+
+
+  static async getAllMembers(req: Request, res: Response) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        searchParam = "",
+        sortBy = "createdAt",
+        sortOrder = "desc",
+        roleType,
+      } = req.query;
+
+      // ✅ Validate query params using Zod schema
+      const queryResult = usersQuerySchema.safeParse({
+        page: Number(page),
+        limit: Number(limit),
+        searchParam,
+        sortBy,
+        sortOrder,
+        roleType: roleType ? Number(roleType) : undefined,
+      });
+
+      if (!queryResult.success) {
+        const errorMessage = handleValidationErrors(queryResult.error);
+        return sendErrorResponse(res, [`Validation Error: ${errorMessage}`], 400);
+      }
+
+      // ✅ Fetch users from service
+      const users = await AdminAuthService.getAllUsers(
+        queryResult.data.page,
+        queryResult.data.limit,
+        queryResult.data.searchParam,
+        queryResult.data.roleType,
+        queryResult.data.sortBy,
+        queryResult.data.sortOrder
+      );
+
+      let resMessage = "Users fetched successfully";
+      if (users.users.length === 0) {
+        resMessage = "No users found";
+      }
+
+      return sendSuccessResponse(res, [resMessage], {
+        users: users.users,
+        pagination: users.pagination,
+      });
+    } catch (error: any) {
+      console.error("Error fetching users:", error.message);
+      return sendErrorResponse(res, ["Failed to fetch users"], 500, error.message);
+    }
+  }
+
+
+  static async DeleteMember(req: Request, res: Response) {
+    try {
+      const memberId = req.params.id;
+      const adminRoleType = req.roleType;
+
+      // 🔹 Check authorization
+      if (adminRoleType !== 1) {
+        return sendErrorResponse(
+          res,
+          ["You are not authorized to delete member details"],
+          403
+        );
+      }
+
+      // 🔹 Validate memberId
+      if (!memberId) {
+        return sendErrorResponse(res, ["Member ID is required"], 400);
+      }
+
+      // 🔹 Call service
+      const isDeleted = await AdminAuthService.deleteMember(memberId);
+
+      if (isDeleted) {
+        return sendSuccessResponse(
+          res,
+          ["Member deleted successfully"],
+          {},
+          200
+        );
+      }
+
+      // Fallback (should not normally reach here)
+      return sendErrorResponse(res, ["Failed to delete member"], 400);
+
+    } catch (error: any) {
+      if (error.message.includes("Member not found or already deleted")) {
+        return sendErrorResponse(res, ["Member not found or already deleted"], 404);
+      }
+
+      console.error("DeleteMember Error:", error.message);
+      return sendErrorResponse(res, ["Internal Server Error"], 500, error.message);
     }
   }
 }

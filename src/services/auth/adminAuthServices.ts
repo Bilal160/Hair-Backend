@@ -1,4 +1,4 @@
-import { IUser } from "../../interfaces/userInterface";
+import { IMemberUpdate, IUser } from "../../interfaces/userInterface";
 import { User } from "../../models/user";
 import { PasswordEncrypt, PasswordMatch } from "../../utils/helperUtils";
 
@@ -409,4 +409,161 @@ export class AdminAuthService {
 
     return userSafe; // this will now include firstName
   }
+
+
+
+
+  static async addRoleUser(user: IUser) {
+    try {
+      const hashedPassword = await PasswordEncrypt(user.password);
+      const newUser = await User.create({
+        ...user,
+        password: hashedPassword,
+      });
+      const {
+        password,
+        createdAt,
+        updatedAt,
+        __v,
+        stripeCustomerId,
+
+        ...userWithoutPassword
+      } = newUser.toObject();
+
+      return {
+        user: userWithoutPassword,
+      };
+    } catch (error) {
+      throw new Error(`Failed to register user: ${error}`);
+    }
+  }
+
+  static async updateMember(
+    payload: Partial<IMemberUpdate> & { memberId: string }
+  ) {
+    const { memberId, ...updates } = payload;
+
+    const updatedUser = (await User.findByIdAndUpdate(memberId, updates, {
+      new: true,
+    }).select(
+      "-password -createdAt -updatedAt -__v -id -stripeCustomerId"
+    )) as IUser;
+
+    return updatedUser;
+  }
+
+  static async deleteMember(memberId: string) {
+    if (!memberId) {
+      throw new Error("Member ID is required");
+    }
+
+    const deletedUser = await User.findByIdAndDelete(memberId).select(
+      "-password -createdAt -updatedAt -__v -id -stripeCustomerId"
+    );
+
+    if (!deletedUser) {
+      throw new Error("Member not found or already deleted");
+    }
+
+    return true;
+  }
+
+  static async changeMemberPassword(payload: {
+    userId: string;
+    confirmPassword: string;
+  }) {
+    const { userId, confirmPassword } = payload;
+
+    // Fetch only needed fields
+    const user = await User.findById(userId, {
+      roleType: 1,
+      name: 1,
+      password: 1,
+      email: 1,
+    });
+
+    if (!user) throw new Error("User not found");
+
+    // Restriction logic
+    if (user.roleType === 0) {
+      throw new Error("You cannot change password for Business User");
+    }
+
+    if (user.roleType === 1) {
+      throw new Error("As you  cannot change password of admin");
+    }
+
+    // Encrypt and update password
+    const hashedNewPassword = await PasswordEncrypt(confirmPassword);
+    user.password = hashedNewPassword;
+
+    const updatedUser = await user.save();
+
+    // Exclude sensitive fields but keep necessary info
+    const {
+      password: _,
+      createdAt,
+      updatedAt,
+      __v,
+      stripeCustomerId,
+      ...userSafe
+    } = updatedUser.toObject();
+
+    return userSafe;
+  }
+
+  static async getAllUsers(
+    page: number = 1,
+    limit: number = 10,
+    searchParam?: string,
+    roleType?: number, // Optional: specific role filter
+    sortBy: string = "createdAt",
+    sortOrder: "asc" | "desc" = "desc"
+  ) {
+    try {
+      const query: any = {};
+
+      // 🔹 Exclude roleType 0 and 1 by default
+      query.roleType = { $nin: [0, 1] };
+
+      // 🔹 If specific roleType filter is applied (like roleType=3)
+      if (roleType !== undefined && roleType !== null) {
+        query.roleType = roleType;
+      }
+
+      // 🔹 Search by name or email
+      if (searchParam) {
+        query.$or = [
+          { name: { $regex: searchParam, $options: "i" } },
+          { email: { $regex: searchParam, $options: "i" } },
+        ];
+      }
+
+      const options: any = {
+        page,
+        limit,
+        sort: { [sortBy]: sortOrder === "asc" ? 1 : -1 },
+        select: "-password", // exclude password for security
+      };
+
+      const users = await User.paginate(query, options);
+
+      return {
+        users: users.docs,
+        pagination: {
+          page: users.page,
+          totalPages: users.totalPages,
+          totalDocs: users.totalDocs,
+          limit: users.limit,
+        },
+      };
+    } catch (error: any) {
+      console.error("Error fetching users:", error.message);
+      throw new Error("Failed to fetch users");
+    }
+  }
+
+
+
+  
 }

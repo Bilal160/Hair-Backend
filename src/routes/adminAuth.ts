@@ -37,5 +37,34 @@ router.delete(
 //   asyncHandler(AdminAuthController.changeUserPasswordByAdmin)
 // );
 
+router.put(
+  "/:id/members/changePassword",
+  adminAuthMiddleware,
+  asyncHandler(AdminAuthController.changeUserPasswordByAdmin)
+);
+
+
+router.post(
+  "/members",
+  adminAuthMiddleware,
+  asyncHandler(AdminAuthController.adminRoleUser)
+);
+router.put(
+  "/:id/members/update",
+  adminAuthMiddleware,
+  asyncHandler(AdminAuthController.UpdateMemeber)
+);
+router.delete(
+  "/:id/members/delete",
+  adminAuthMiddleware,
+  asyncHandler(AdminAuthController.DeleteMember)
+);
+
+router.get(
+  "/members/list",
+  adminAuthMiddleware,
+  asyncHandler(AdminAuthController.getAllMembers)
+);
+
 
 export = router;

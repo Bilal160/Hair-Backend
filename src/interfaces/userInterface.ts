@@ -32,3 +32,14 @@ declare global {
     }
   }
 }
+
+
+export interface IMemberUpdate extends Document {
+  name: string;
+  email?: string;
+  memberId?: string;
+  roleType: number;
+
+  createdAt?: Date;
+  updatedAt?: Date;
+}

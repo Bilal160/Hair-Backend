@@ -436,7 +436,7 @@ export class AdminAuthController {
     const adminroleType = req.roleType;
 
 
-    if (adminroleType !== 1) {
+    if (adminroleType !== 2) {
       return sendErrorResponse(
         res,
         ["You are not authorized to update Memeber Detail"],
@@ -595,6 +595,41 @@ export class AdminAuthController {
 
       console.error("DeleteMember Error:", error.message);
       return sendErrorResponse(res, ["Internal Server Error"], 500, error.message);
+    }
+  }
+
+
+  static async activeOrBlock(req: Request, res: Response) {
+    const { userId } = req.params;
+    const { action } = req.body;
+
+    try {
+      const businessProfile =
+        await AdminAuthService.activeorblockProfile(
+          userId,
+          action
+        );
+
+      let resMessage = ""
+
+      if (action === false) {
+        resMessage = "Profile Blocked SuccessFully"
+      }
+
+      if (action === true) {
+        resMessage = "Profie Approved Successfully"
+      }
+
+      return sendSuccessResponse(
+        res,
+        [`${resMessage}`],
+        {
+          businessProfile: businessProfile,
+        }
+      );
+    } catch (error) {
+      console.log(error, "error in upateUserTypeController");
+      return sendErrorResponse(res, ["Error updating user type"], 500);
     }
   }
 }

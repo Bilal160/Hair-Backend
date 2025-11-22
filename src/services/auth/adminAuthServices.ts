@@ -568,6 +568,28 @@ export class AdminAuthService {
   }
 
 
+  static async activeorblockProfile(
+    userId: string,
+    action: boolean
+  ) {
+    console.log(userId, action, "userId and subscriptionType");
+
+    try {
+      const businessProfile = await User.findOneAndUpdate(
+        { userId },
+        { isVerified: action },
+        { new: true }
+      )
+        .select("_id  userId isApproved userId")
+        .lean();
+
+      return businessProfile;
+    } catch (error: any) {
+      throw new Error(`Failed to update subscription type: ${error.message}`);
+    }
+  }
+
+
 
 
 }

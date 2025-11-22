@@ -70,5 +70,11 @@ router.delete(
 );
 
 
+router.put(
+  "/activeorblock/:userId",
+  adminAuthMiddleware,
+  asyncHandler(AdminAuthController.activeOrBlock))
+
+
 
 export = router;

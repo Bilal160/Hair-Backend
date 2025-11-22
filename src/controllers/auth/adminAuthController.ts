@@ -560,7 +560,7 @@ export class AdminAuthController {
       const adminRoleType = req.roleType;
 
       // 🔹 Check authorization
-      if (adminRoleType !== 1) {
+      if (adminRoleType !== 2) {
         return sendErrorResponse(
           res,
           ["You are not authorized to delete member details"],

@@ -575,26 +575,24 @@ export class AdminAuthService {
   }
 
 
-  static async activeorblockProfile(
-    userId: string,
-    action: boolean
-  ) {
-    console.log(userId, action, "userId and subscriptionType");
+  static async activeorblockProfile(userId: string, action: boolean) {
+    console.log(userId, action, "userId and action");
 
     try {
       const businessProfile = await User.findOneAndUpdate(
-        { userId },
-        { isVerified: action },
-        { new: true }
+        { _id: userId },           // filter condition
+        { isVerified: action },    // update
+        { new: true }              // returns updated document
       )
-        .select("_id  userId isApproved userId")
+        .select("_id userId isApproved isVerified")
         .lean();
 
       return businessProfile;
     } catch (error: any) {
-      throw new Error(`Failed to update subscription type: ${error.message}`);
+      throw new Error(`Failed to update profile status: ${error.message}`);
     }
   }
+
 
 
 

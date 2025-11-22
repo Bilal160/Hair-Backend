@@ -633,7 +633,7 @@ export class AdminAuthController {
         res,
         [`${resMessage}`],
         {
-          businessProfile: businessProfile,
+          user: businessProfile,
         }
       );
     } catch (error) {

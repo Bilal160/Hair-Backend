@@ -528,7 +528,7 @@ export class AdminAuthService {
       const query: any = {};
 
       // 🔹 Exclude roleType 0 and 1 by default
-      query.roleType = { $nin: [0, 1] };
+      query.roleType = { $nin: [0, 1, 2] };
 
       // 🔹 If specific roleType filter is applied (like roleType=3)
       if (roleType !== undefined && roleType !== null) {

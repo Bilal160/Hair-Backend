@@ -58,6 +58,7 @@ import { mongoConnect } from "./src/config/dbConfig";
 import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "http";
 import cors from "cors";
+import "./src/cronJobs/paymentCronJob";
 
 import { routes } from "./src/routes/indexRoute";
 import { sendErrorResponse } from "./src/utils/responseUtils";

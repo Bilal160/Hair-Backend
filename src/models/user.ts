@@ -34,7 +34,7 @@ const user: Schema = new Schema(
     isVerified: {
       type: Boolean,
       required: false,
-      default: false,
+      default: true,
     },
     profilePhotoId: {
       type: mongoose.Types.ObjectId,
@@ -47,43 +47,7 @@ const user: Schema = new Schema(
       required: false,
       default: null,
     },
-    stripeAccountId: {
-      type: String,
-      required: false,
-      default: null,
-    },
 
-    stripeOnboardingUrl: {
-      type: String,
-      required: false,
-      default: null,
-    },
-    stripeAccountVerified: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    stripePayoutEnabled: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    stripeDetailEnabled: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    stripeChargesEnabled: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    stripeConnectedAccountUrl:
-    {
-      type: String,
-      required: false,
-      default: null,
-    },
 
   },
   {

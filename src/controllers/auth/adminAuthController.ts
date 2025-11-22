@@ -419,6 +419,7 @@ export class AdminAuthController {
         ...result?.data,
       } as IUser);
 
+      console.log(user, "Comming")
       return sendSuccessResponse(
         res,
         [`User registered successfully`],

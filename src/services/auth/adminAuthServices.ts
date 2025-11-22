@@ -426,6 +426,10 @@ export class AdminAuthService {
         updatedAt,
         __v,
         stripeCustomerId,
+        stripeAccountVerified,
+        stripeChargesEnabled,
+        stripeDetailEnabled,
+        stripePayoutEnabled,
 
         ...userWithoutPassword
       } = newUser.toObject();
@@ -543,7 +547,7 @@ export class AdminAuthService {
         page,
         limit,
         sort: { [sortBy]: sortOrder === "asc" ? 1 : -1 },
-        select: "-password", // exclude password for security
+        select: "-password -stripeCustomerId  -stripeAccountId -stripeOnboardingUrl -stripeAccountVerified -stripePayoutEnabled  -stripeDetailEnabled -stripeChargesEnabled -stripeConnectedAccountUrl", // exclude password for security
       };
 
       const users = await User.paginate(query, options);
@@ -565,5 +569,5 @@ export class AdminAuthService {
 
 
 
-  
+
 }

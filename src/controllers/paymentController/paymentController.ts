@@ -66,17 +66,22 @@ export class PaymentController {
       const cardBrand = paymentMethod.card?.brand || "";
 
       // --- Plan Config
-      let planConfig: { plan: any; amount: number, subscriptionType: string };
+      let planConfig: { plan: any; amount: number; subscriptionType: string };
       if (planType === 0) {
-        planConfig = { plan: trialSubscriptionPlan, amount: 0, subscriptionType: "free" }; // $20
+        planConfig = {
+          plan: trialSubscriptionPlan,
+          amount: 0,
+          subscriptionType: "free",
+        }; // $20
       } else if (planType === 2) {
-        planConfig = { plan: sponsoredSubscriptionPlan, amount: 10000, subscriptionType: "sponsored" }; // $100
-      }
-      else {
+        planConfig = {
+          plan: sponsoredSubscriptionPlan,
+          amount: 10000,
+          subscriptionType: "sponsored",
+        }; // $100
+      } else {
         return sendErrorResponse(res, ["Invalid plan type"], 400);
       }
-
-
 
       // --- Save card
       const PaymentCard = await PaymentService.savePaymentCardService({
@@ -85,7 +90,6 @@ export class PaymentController {
         stripePaymentMethodId,
         cardLast4Number,
         cardBrand,
-
       });
 
       // --- Subscription create
@@ -106,7 +110,11 @@ export class PaymentController {
         paymentCard: PaymentCard,
       };
 
-      const updatedSubscriptionType = await BusinessProfileService.updateSubscriptionType(userId, planConfig.subscriptionType);
+      const updatedSubscriptionType =
+        await BusinessProfileService.updateSubscriptionType(
+          userId,
+          planConfig.subscriptionType
+        );
 
       return sendSuccessResponse(res, ["Payment card saved successfully"], {
         subscriptionInfo,
@@ -116,7 +124,6 @@ export class PaymentController {
       return sendErrorResponse(res, ["Internal server error"], 500);
     }
   }
-
 
   static async getSubscriptionController(req: Request, res: Response) {
     const userId = req.userId;
@@ -131,7 +138,8 @@ export class PaymentController {
           404
         );
       }
-      const subscriptionType = await BusinessProfileService.getUserSubscriptionType(userId);
+      const subscriptionType =
+        await BusinessProfileService.getUserSubscriptionType(userId);
       return sendSuccessResponse(res, ["Subscription fetched successfully"], {
         subscription,
         subscriptionType,
@@ -190,6 +198,7 @@ export class PaymentController {
           paymentMethodId: stripePaymentMethodId,
         });
 
+        console.log(paymentIntent, "Payment Intent Info");
         if (paymentIntent.status !== "succeeded") {
           return sendErrorResponse(res, ["Payment did not succeed"], 402);
         }
@@ -228,7 +237,11 @@ export class PaymentController {
           },
         };
 
-        return sendSuccessResponse(res, ["Payment charged and subscription renewed successfully"], responseData);
+        return sendSuccessResponse(
+          res,
+          ["Payment charged and subscription renewed successfully"],
+          responseData
+        );
       }
 
       // 🧠 CASE 2: Subscription active → just update card info
@@ -255,15 +268,16 @@ export class PaymentController {
         },
       };
 
-      return sendSuccessResponse(res, ["Card updated successfully"], responseData);
-
+      return sendSuccessResponse(
+        res,
+        ["Card updated successfully"],
+        responseData
+      );
     } catch (error: any) {
       console.error("Error updating Stripe card:", error);
       return sendErrorResponse(res, ["Internal server error"], 500);
     }
   }
-
-
 
   static async removePaymentCardController(req: Request, res: Response) {
     try {
@@ -335,7 +349,6 @@ export class PaymentController {
     }
   }
 
-
   static async changePlanController(req: Request, res: Response) {
     try {
       const { planType, stripeCustomerId, stripePaymentMethodId } = req.body;
@@ -352,18 +365,32 @@ export class PaymentController {
       }
 
       // Get existing subscription
-      const subscriptionExists = await PaymentService.getSubscriptionByUserId(userId);
+      const subscriptionExists = await PaymentService.getSubscriptionByUserId(
+        userId
+      );
 
       if (!subscriptionExists) {
-        return sendErrorResponse(res, ["No subscription found for this user"], 400);
+        return sendErrorResponse(
+          res,
+          ["No subscription found for this user"],
+          400
+        );
       }
 
       // Plan Config
-      let planConfig: { plan: any; amount: number, subscriptionType: string };
+      let planConfig: { plan: any; amount: number; subscriptionType: string };
       if (planType === 1) {
-        planConfig = { plan: standardSubscriptionPlan, amount: 2000, subscriptionType: "standard" }; // $20
+        planConfig = {
+          plan: standardSubscriptionPlan,
+          amount: 2000,
+          subscriptionType: "standard",
+        }; // $20
       } else if (planType === 2) {
-        planConfig = { plan: sponsoredSubscriptionPlan, amount: 10000, subscriptionType: "sponsored" }; // $100
+        planConfig = {
+          plan: sponsoredSubscriptionPlan,
+          amount: 10000,
+          subscriptionType: "sponsored",
+        }; // $100
       } else {
         return sendErrorResponse(res, ["Invalid plan type"], 400);
       }
@@ -380,7 +407,8 @@ export class PaymentController {
         }
       };
 
-      const subscriptionType = await BusinessProfileService.getUserSubscriptionType(userId);
+      const subscriptionType =
+        await BusinessProfileService.getUserSubscriptionType(userId);
       const existingPlanType = getPlanTypeFromStatus(subscriptionType || "");
       const isPlanChanged = existingPlanType !== planType;
       const isDowngrade = existingPlanType > planType;
@@ -460,11 +488,19 @@ export class PaymentController {
           cardFinalData = subscriptionExists.paymentCard;
         }
 
-        const subscriptionInfo = { ...updatedSubscription, paymentCard: cardFinalData };
+        const subscriptionInfo = {
+          ...updatedSubscription,
+          paymentCard: cardFinalData,
+        };
 
-        return sendSuccessResponse(res, ["Plan downgraded successfully"], {
-          subscriptionInfo,
-        }, 200);
+        return sendSuccessResponse(
+          res,
+          ["Plan downgraded successfully"],
+          {
+            subscriptionInfo,
+          },
+          200
+        );
       }
 
       let stripeCustomerIdToUse: string;
@@ -474,16 +510,27 @@ export class PaymentController {
       // CASE 1: Only planType provided - use existing card
       if (!stripeCustomerId && !stripePaymentMethodId) {
         if (subscriptionExists.paymentCard === null) {
-          return sendErrorResponse(res, ["No payment card found. Please provide card details"], 400);
+          return sendErrorResponse(
+            res,
+            ["No payment card found. Please provide card details"],
+            400
+          );
         }
 
         stripeCustomerIdToUse = subscriptionExists.paymentCard.stripeCustomerId;
-        stripePaymentMethodIdToUse = subscriptionExists.paymentCard.stripePaymentMethodId;
+        stripePaymentMethodIdToUse =
+          subscriptionExists.paymentCard.stripePaymentMethodId;
       }
       // CASE 2: planType + card details provided - update card and charge
       else {
         if (!stripeCustomerId || !stripePaymentMethodId) {
-          return sendErrorResponse(res, ["Both stripeCustomerId and stripePaymentMethodId are required when updating card"], 400);
+          return sendErrorResponse(
+            res,
+            [
+              "Both stripeCustomerId and stripePaymentMethodId are required when updating card",
+            ],
+            400
+          );
         }
 
         stripeCustomerIdToUse = stripeCustomerId;
@@ -532,11 +579,15 @@ export class PaymentController {
         subscriptionStatus: planConfig.plan.subscriptionStatus,
         subscriptionStartDate: planConfig.plan.subscriptionStartDate,
         subscriptionExpiryDate: planConfig.plan.subscriptionExpiryDate,
-        previousSubscriptionStatus: subscriptionExists?.previousSubscriptionStatus || subscriptionExists?.subscriptionStatus || "",
+        previousSubscriptionStatus:
+          subscriptionExists?.previousSubscriptionStatus ||
+          subscriptionExists?.subscriptionStatus ||
+          "",
         paymentCardId: updatedCardData?.id || subscriptionExists.paymentCardId,
         expiryReason: subscriptionExists?.expiryReason || "",
         subscriptionMethod: "stripe",
-        subscriptionMethodId: updatedCardData?.id || subscriptionExists.paymentCardId,
+        subscriptionMethodId:
+          updatedCardData?.id || subscriptionExists.paymentCardId,
       };
 
       const subscription = await PaymentService.updateSubscription(
@@ -571,9 +622,14 @@ export class PaymentController {
 
       const subscriptionInfo = { ...subscription, paymentCard: cardFinalData };
 
-      return sendSuccessResponse(res, ["Plan changed successfully"], {
-        subscriptionInfo,
-      }, 200);
+      return sendSuccessResponse(
+        res,
+        ["Plan changed successfully"],
+        {
+          subscriptionInfo,
+        },
+        200
+      );
     } catch (error: any) {
       console.error("Error changing plan:", error);
       if (error.message === "No card found for this user") {
@@ -583,4 +639,3 @@ export class PaymentController {
     }
   }
 }
-

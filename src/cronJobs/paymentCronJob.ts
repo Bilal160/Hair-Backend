@@ -50,7 +50,7 @@ async function checkSubscriptionsAndProcessPayments() {
           // Process payment
           console.log(paymentCard, "Coming Card Info");
           const paymentIntent = await PaymentService.createPaymentIntent({
-            amount: 2000,
+            amount: 1999,
             currency: "cad",
             customerId: paymentCard.stripeCustomerId,
             paymentMethodId: paymentCard.stripePaymentMethodId,
@@ -69,13 +69,19 @@ async function checkSubscriptionsAndProcessPayments() {
               previousSubscriptionStatus: subscription?.subscriptionStatus,
               expiryReason: null,
             });
-            await BusinessProfileService.updateSubscriptionType(subscription.userId as string, "standard");
+            await BusinessProfileService.updateSubscriptionType(
+              subscription.userId as string,
+              "standard"
+            );
           } else {
             console.error(
               `Payment failed for subscription ${subscription.id}, Status: ${paymentIntent.status}`
             );
             await expireSubscription(subscription, "1"); // Reason: Payment failure
-            await BusinessProfileService.updateSubscriptionType(subscription.userId as string, "free");
+            await BusinessProfileService.updateSubscriptionType(
+              subscription.userId as string,
+              "free"
+            );
           }
         } catch (error) {
           console.error(
@@ -83,7 +89,10 @@ async function checkSubscriptionsAndProcessPayments() {
             error
           );
           await expireSubscription(subscription, "1");
-          await BusinessProfileService.updateSubscriptionType(subscription.userId as string, "free");
+          await BusinessProfileService.updateSubscriptionType(
+            subscription.userId as string,
+            "free"
+          );
         }
       }
     }
@@ -104,7 +113,10 @@ async function expireSubscription(subscription: any, reason: string) {
     expiryReason: reason,
   });
 
-  await BusinessProfileService.updateSubscriptionType(subscription.userId, "free");
+  await BusinessProfileService.updateSubscriptionType(
+    subscription.userId,
+    "free"
+  );
 }
 
 // Export the function to be used with cron

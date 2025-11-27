@@ -7,10 +7,13 @@ import {
 } from "../../utils/jwtUtils";
 import { PasswordReset } from "../../models/passwordReset";
 import { EmailVerification } from "../../models/emailVerificationsTokens";
-import { checkStripeAccountStatus } from "../../utils/stripeInfoUtils";
+import {
+  checkStripeAccountStatus,
+  createStripeCustomer,
+} from "../../utils/stripeInfoUtils";
 
 export class BusinessAuthService {
-  constructor(private readonly BusinessAuthService: BusinessAuthService) { }
+  constructor(private readonly BusinessAuthService: BusinessAuthService) {}
 
   static async registerUser(user: IUser) {
     try {
@@ -22,11 +25,11 @@ export class BusinessAuthService {
 
       const accessToken = await generateAccessToken(
         (newUser._id as any).toString(),
-        newUser && newUser.roleType || 1
+        (newUser && newUser.roleType) || 1
       );
       const refreshToken = await generateRefreshToken(
         (newUser._id as any).toString(),
-        newUser && newUser.roleType || 1
+        (newUser && newUser.roleType) || 1
       );
 
       const {
@@ -58,10 +61,24 @@ export class BusinessAuthService {
       throw new Error("Invalid credentials");
     }
 
-    const accessToken = await generateAccessToken((user._id as any).toString(), user && user.roleType || 1);
+    if (!user.stripeCustomerId || user.stripeCustomerId.trim() == "") {
+      console.log("stripeCustomerId is empty");
+      const stripeCustomer = await createStripeCustomer({
+        email: user.email ?? "",
+        name: user.name ?? "",
+      });
+
+      user.stripeCustomerId = stripeCustomer.id;
+      await user.save(); // You can also use: await UserModel.findByIdAndUpdate(user._id, { stripeCustomerId: stripeCustomer.id })
+    }
+
+    const accessToken = await generateAccessToken(
+      (user._id as any).toString(),
+      (user && user.roleType) || 1
+    );
     const refreshToken = await generateRefreshToken(
       (user._id as any).toString(),
-      user && user.roleType || 1
+      (user && user.roleType) || 1
     );
 
     const {
@@ -416,7 +433,11 @@ export class BusinessAuthService {
     }
   }
 
-  static async setupConnectAccount(payload: { userId: string, stripeAccountId: string, stripeOnboardingUrl: string }) {
+  static async setupConnectAccount(payload: {
+    userId: string;
+    stripeAccountId: string;
+    stripeOnboardingUrl: string;
+  }) {
     try {
       const { userId, stripeAccountId, stripeOnboardingUrl } = payload;
       const user = await User.findById(userId);
@@ -439,7 +460,6 @@ export class BusinessAuthService {
     }
   }
 
-
   static async updateVerificationStatus(payload: { stripeAccountId: string }) {
     try {
       const { stripeAccountId } = payload;
@@ -460,26 +480,25 @@ export class BusinessAuthService {
       await user.save();
 
       // 4️⃣ Return sanitized user object
-      const { password, __v, createdAt, updatedAt, ...userSafe } = user.toObject();
+      const { password, __v, createdAt, updatedAt, ...userSafe } =
+        user.toObject();
       return userSafe;
-
     } catch (error: any) {
       console.error("Failed to update Stripe verification status:", error);
       throw new Error(error?.message || "Failed to update verification status");
     }
   }
 
-
   static async updateStatus(id: string) {
     try {
-
-      console.log(id)
+      console.log(id);
 
       // 1️⃣ Find user by ID
       const user = await User.findById(id);
       if (!user) throw new Error("User not found");
 
-      if (!user.stripeAccountId) throw new Error("User does not have a Stripe account");
+      if (!user.stripeAccountId)
+        throw new Error("User does not have a Stripe account");
 
       // 2️⃣ Get latest verification status from Stripe
       const verification = await checkStripeAccountStatus(user.stripeAccountId);
@@ -512,20 +531,14 @@ export class BusinessAuthService {
       };
 
       return {
-
         data: {
           stripeAccountId: user.stripeAccountId,
           verificationStatus,
         },
-
       };
     } catch (error: any) {
       console.error("Failed to update Stripe verification status:", error);
       throw new Error(error?.message || "Failed to update verification status");
     }
   }
-
-
-
-
 }

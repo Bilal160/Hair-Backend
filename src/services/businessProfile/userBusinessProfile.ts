@@ -397,7 +397,7 @@ export class UserBusinessProfileService {
           $geoNear: {
             near: { type: "Point", coordinates: [longitude, latitude] },
             distanceField: "distance",
-            maxDistance: 50000, // 25 km radius
+            maxDistance: 100000, // 25 km radius
             spherical: true,
           },
         },

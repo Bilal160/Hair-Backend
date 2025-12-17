@@ -8,11 +8,11 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "build": "node api.js && tsc",
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
-    "dev": "nodemon --exec ts-node src/index.ts",
-    "start": "node dist/index.js",
+    "dev": "node api.js && nodemon --exec ts-node src/index.ts",
+    "start": "node api.js && node dist/index.js",
     "start:prod": "npm run build && npm start"
   },
   "dependencies": {
@@ -32,7 +32,6 @@
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "heic-convert": "^2.1.0",
     "helmet": "^8.1.0",
